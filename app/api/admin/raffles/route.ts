@@ -18,6 +18,7 @@ async function bodyToData(body: any) {
     discordInvite2: body.discordInvite2 ? String(body.discordInvite2).trim() || null : null,
     likePostUrl: body.likePostUrl ? String(body.likePostUrl).trim() || null : null,
     rtPostUrl: body.rtPostUrl ? String(body.rtPostUrl).trim() || null : null,
+    walletChain: body.walletChain === 'NONE' ? null : (body.walletChain ? String(body.walletChain).trim() : 'EVM'),
     status: 'LIVE',
   }
 }

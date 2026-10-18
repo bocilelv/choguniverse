@@ -29,6 +29,10 @@ export default async function Home() {
               gated whitelist raffles for CHOG Genesis holders
             </p>
           </div>
+          <a href="/collab"
+            className="absolute bottom-4 right-4 sm:bottom-6 sm:right-8 font-black text-xs sm:text-sm bg-ink text-cream border-2 border-ink rounded-xl px-4 sm:px-5 py-2 sm:py-2.5 shadow-[3px_3px_0_rgba(0,0,0,0.3)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none hover:bg-pink hover:border-ink transition-colors">
+            REQUEST COLLAB →
+          </a>
         </div>
       </section>
 

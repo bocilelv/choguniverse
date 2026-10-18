@@ -15,7 +15,7 @@ type Raffle = {
   startDate: string; endDate: string; totalSpots: number; entriesCount: number
   twitterHandle1: string; twitterHandle2: string | null; twitterHandle3: string | null
   discordInvite1: string | null; discordInvite2: string | null
-  likePostUrl: string | null; rtPostUrl: string | null
+  likePostUrl: string | null; rtPostUrl: string | null; walletChain: string | null
   status: string; createdAt: string; entries: Entry[]
 }
 
@@ -23,7 +23,7 @@ const EMPTY_FORM = {
   title: '', description: '', image: 'https://picsum.photos/seed/newchog/600/600',
   blockchain: 'MONAD', endDate: '', totalSpots: '100',
   twitterHandle1: '', twitterHandle2: '', twitterHandle3: '',
-  discordInvite1: '', discordInvite2: '', likePostUrl: '', rtPostUrl: '',
+  discordInvite1: '', discordInvite2: '', likePostUrl: '', rtPostUrl: '', walletChain: 'EVM',
 }
 
 function toLocalInput(iso: string) {
@@ -57,6 +57,7 @@ export function AdminClient({ raffles }: { raffles: Raffle[] }) {
         discordInvite2: form.discordInvite2.trim() || null,
         likePostUrl: form.likePostUrl.trim() || null,
         rtPostUrl: form.rtPostUrl.trim() || null,
+        walletChain: form.walletChain === 'NONE' ? null : form.walletChain,
       }
       const res = await fetch(editId ? `/api/admin/raffles/${editId}` : '/api/admin/raffles', {
         method: editId ? 'PATCH' : 'POST',
@@ -102,7 +103,7 @@ export function AdminClient({ raffles }: { raffles: Raffle[] }) {
       twitterHandle1: r.twitterHandle1 || '', twitterHandle2: r.twitterHandle2 || '',
       twitterHandle3: r.twitterHandle3 || '', discordInvite1: r.discordInvite1 || '',
       discordInvite2: r.discordInvite2 || '', likePostUrl: r.likePostUrl || '',
-      rtPostUrl: r.rtPostUrl || '',
+      rtPostUrl: r.rtPostUrl || '', walletChain: r.walletChain || 'NONE',
     })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -257,7 +258,18 @@ export function AdminClient({ raffles }: { raffles: Raffle[] }) {
                   className="mt-1 w-full font-bold text-sm border-2 border-ink rounded-xl px-3 py-2.5 bg-white focus:outline-none" />
               </label>
             </div>
-            <p className="mt-2 text-[11px] font-bold text-ink/40">minimal handle #1 wajib; sisanya optional</p>
+            <label className="block mt-3">
+              <span className="font-black text-[11px] text-ink/60">Required wallet (untuk kirim hadiah)</span>
+              <select value={form.walletChain} onChange={(e) => setF('walletChain', e.target.value)}
+                className="mt-1 w-full sm:w-72 font-bold text-sm border-2 border-ink rounded-xl px-3 py-2.5 bg-white focus:outline-none">
+                <option value="EVM">EVM (ETH / MON / Robinhood)</option>
+                <option value="SUI">SUI</option>
+                <option value="BTC">BTC</option>
+                <option value="INJ">INJ</option>
+                <option value="NONE">Tidak wajib wallet</option>
+              </select>
+            </label>
+            <p className="mt-2 text-[11px] font-bold text-ink/40">minimal handle #1 wajib; sisanya optional — peserta harus paste wallet sesuai chain yang dipilih sebelum bisa entry</p>
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">

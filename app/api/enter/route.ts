@@ -27,6 +27,20 @@ export async function POST(req: NextRequest) {
     if (!follows) return NextResponse.json({ message: `follow @${raffle.twitterHandle1} on X first` }, { status: 403 })
   }
 
+  // Wallet check: raffle SUI -> user harus sudah paste alamat SUI, dst.
+  if (raffle.walletChain) {
+    const walletMap: Record<string, string | null> = {
+      EVM: user.evmAddress, SUI: user.suiAddress, BTC: user.btcAddress, INJ: user.injAddress,
+    }
+    const wallet = walletMap[raffle.walletChain]
+    if (!wallet) {
+      return NextResponse.json(
+        { message: `paste your ${raffle.walletChain} wallet address in your profile first`, needsWallet: raffle.walletChain },
+        { status: 400 },
+      )
+    }
+  }
+
   await prisma.$transaction([
     prisma.entry.create({ data: { userId: user.id, raffleId, isValid: true } }),
     prisma.raffle.update({ where: { id: raffleId }, data: { entriesCount: { increment: 1 } } }),

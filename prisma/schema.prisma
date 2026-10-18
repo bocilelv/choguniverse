@@ -43,6 +43,7 @@ model Raffle {
   discordInvite2        String?
   likePostUrl           String?  // optional
   rtPostUrl             String?  // optional
+  walletChain           String?  // EVM / SUI / BTC / INJ — null = tidak wajib wallet
   status                String   @default("LIVE")
   createdAt             DateTime @default(now())
   entries               Entry[]

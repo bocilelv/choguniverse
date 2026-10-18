@@ -19,6 +19,7 @@ const raffles = [
     twitterHandle1: 'chog',
     twitterHandle2: 'bocilelv',
     discordInvite1: 'https://discord.gg/chog',
+    walletChain: 'EVM',
   },
   {
     title: 'CHOG FRENS GIVEAWAY',
@@ -47,6 +48,7 @@ const raffles = [
     twitterHandle3: 'choguniverse',
     discordInvite1: 'https://discord.gg/chog',
     discordInvite2: 'https://discord.gg/chogfrens',
+    walletChain: 'SUI',
   },
   {
     title: 'CHOGFLIP SEASON 1',
@@ -95,6 +97,7 @@ const raffles = [
     entriesCount: 0,
     twitterHandle1: 'bocilelv',
     likePostUrl: 'https://x.com/bocilelv/status/1',
+    walletChain: 'INJ',
   },
 ]
 

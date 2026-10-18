@@ -18,6 +18,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (body.discordInvite2 !== undefined) data.discordInvite2 = String(body.discordInvite2).trim() || null
   if (body.likePostUrl !== undefined) data.likePostUrl = String(body.likePostUrl).trim() || null
   if (body.rtPostUrl !== undefined) data.rtPostUrl = String(body.rtPostUrl).trim() || null
+  if (body.walletChain !== undefined) data.walletChain = body.walletChain === 'NONE' ? null : (String(body.walletChain).trim() || null)
   if (body.endDate !== undefined) data.endDate = new Date(body.endDate)
   if (body.startDate !== undefined) data.startDate = new Date(body.startDate)
   try {

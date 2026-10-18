@@ -78,6 +78,14 @@ export default async function RaffleDetail({ params }: { params: { id: string } 
               {r.rtPostUrl && (
                 <ReqCheck href={r.rtPostUrl} label={<b className="text-pink">RT this post</b>} />
               )}
+              {r.walletChain && (
+                <div className="flex items-center gap-2.5 font-bold text-sm">
+                  <span className="w-5 h-5 shrink-0 rounded-full border-2 border-ink flex items-center justify-center text-[11px] bg-cream2">
+                    ⬡
+                  </span>
+                  <span>Paste your <b className="text-pink">{r.walletChain}</b> wallet address in your profile</span>
+                </div>
+              )}
             </div>
             <p className="mt-2 text-[11px] font-bold text-ink/40">requirements are verified when you enter — mock mode: auto-pass</p>
           </div>
