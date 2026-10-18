@@ -9,9 +9,28 @@ const LINKS = [
   { href: '/admin', label: 'Admin' },
 ]
 
+export function useDarkMode() {
+  const [dark, setDark] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false
+    const saved = localStorage.getItem('choglist-theme')
+    if (saved === 'dark') { document.documentElement.classList.add('dark'); return true }
+    return false
+  })
+  const toggle = () => {
+    setDark((d) => {
+      const next = !d
+      if (next) { document.documentElement.classList.add('dark'); localStorage.setItem('choglist-theme', 'dark') }
+      else { document.documentElement.classList.remove('dark'); localStorage.setItem('choglist-theme', 'light') }
+      return next
+    })
+  }
+  return { dark, toggle }
+}
+
 export function Navbar() {
   const { data: session, status } = useSession()
   const [open, setOpen] = useState(false)
+  const { dark, toggle } = useDarkMode()
 
   return (
     <nav className="sticky top-0 z-50 border-b-2 border-ink bg-cream/95 backdrop-blur">
@@ -23,6 +42,10 @@ export function Navbar() {
 
         {/* Desktop */}
         <div className="hidden sm:flex items-center gap-1">
+          <button aria-label="theme" onClick={toggle}
+            className="w-9 h-9 flex items-center justify-center rounded-lg border-2 border-ink bg-white text-base">
+            {dark ? '☀️' : '🌙'}
+          </button>
           {LINKS.map((l) => (
             <a key={l.href} href={l.href}
               className="font-bold text-sm px-3 py-1.5 rounded-lg hover:bg-cream2 transition-colors">
@@ -59,6 +82,10 @@ export function Navbar() {
       {/* Mobile dropdown */}
       {open && (
         <div className="sm:hidden border-t-2 border-ink bg-cream px-3 py-3 flex flex-col gap-2">
+          <button aria-label="theme" onClick={toggle}
+            className="text-left font-black text-sm px-4 py-3 rounded-xl border-2 border-ink bg-white">
+            {dark ? '☀️ LIGHT MODE' : '🌙 DARK MODE'}
+          </button>
           {LINKS.map((l) => (
             <a key={l.href} href={l.href} onClick={() => setOpen(false)}
               className="font-black text-sm px-4 py-3 rounded-xl border-2 border-ink bg-white">

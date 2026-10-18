@@ -40,18 +40,35 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user, account }) {
-      // simpan / update user di DB tiap login
+    async signIn({ user, account }: any) {
       try {
+        const provider = account?.provider
+        const providerId = account?.providerAccountId
         const data: any = { name: user.name, image: user.image }
-        if (account?.provider === 'discord') {
-          data.discordId = account.providerAccountId
-          data.discordUsername = (user.name || '') + '#' + ((user as any).discriminator || '0000')
+        if (provider === 'discord') {
+          data.discordId = providerId
+          data.discordUsername = user.name || 'chog'
         }
-        if (account?.provider === 'twitter') {
-          data.twitterId = account.providerAccountId
+        if (provider === 'twitter') {
+          data.twitterId = providerId
           data.twitterUsername = (user as any).username || user.name
         }
+
+        // LINK MODE: user udah login & connect provider kedua -> merge ke akun existing
+        let linkTarget: string | null = null
+        try {
+          const { cookies } = await import('next/headers')
+          const jar = cookies()
+          linkTarget = jar.get('link_to')?.value || null
+        } catch { /* no cookie access */ }
+        if (linkTarget) {
+          const target = await prisma.user.findUnique({ where: { id: linkTarget } })
+          if (target) {
+            await prisma.user.update({ where: { id: target.id }, data })
+            return true
+          }
+        }
+
         await prisma.user.upsert({
           where: { email: user.email || `${account?.provider}:${account?.providerAccountId}@chog.local` },
           update: data,
@@ -66,13 +83,19 @@ export const authOptions: NextAuthOptions = {
         return true
       }
     },
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account }: any) {
       // X OAuth 2.0 sering tidak mengirim email — pakai fallback stabil
       if (user && account) {
         token.email = user.email || `${account.provider}:${account.providerAccountId}@chog.local`
-      }
-      if (token.email && !user) {
-        // keep existing token email on refresh
+        // LINK MODE: pertahankan email akun asli (yang di-link)
+        try {
+          const { cookies } = await import('next/headers')
+          const linkTarget = cookies().get('link_to')?.value
+          if (linkTarget) {
+            const target = await prisma.user.findUnique({ where: { id: linkTarget } })
+            if (target) token.email = target.email
+          }
+        } catch { /* ignore */ }
       }
       return token
     },
