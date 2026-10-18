@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = env("DATABASE_PROVIDER")
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -50,12 +50,13 @@ model Raffle {
 }
 
 model Entry {
-  id        String   @id @default(cuid())
-  userId    String
-  raffleId  String
-  createdAt DateTime @default(now())
-  isValid   Boolean  @default(true)
-  isWinner  Boolean  @default(false)
+  id            String   @id @default(cuid())
+  userId        String
+  raffleId      String
+  ticketNumber  Int
+  createdAt     DateTime @default(now())
+  isValid       Boolean  @default(true)
+  isWinner      Boolean  @default(false)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   raffle    Raffle   @relation(fields: [raffleId], references: [id], onDelete: Cascade)
 

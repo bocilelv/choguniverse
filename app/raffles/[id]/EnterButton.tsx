@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation'
 export function EnterButton({ raffleId, ended, upcoming }: { raffleId: string; ended: boolean; upcoming?: boolean }) {
   const { data: session, status } = useSession()
   const [loading, setLoading] = useState(false)
-  const [done, setDone] = useState(false)
+  const [ticket, setTicket] = useState<number | null>(null)
   const router = useRouter()
 
   if (status === 'loading') return <button disabled className="w-full font-black text-sm border-2 border-ink rounded-xl px-6 py-3.5 bg-cream2 text-ink/40">…</button>
@@ -30,10 +30,12 @@ export function EnterButton({ raffleId, ended, upcoming }: { raffleId: string; e
     )
   }
 
-  if (done) {
+  if (ticket !== null) {
     return (
-      <div className="w-full font-black text-sm border-2 border-ink rounded-xl px-6 py-3.5 bg-green-100 text-green-800 text-center">
-        ✓ ENTERED — GOOD LUCK!
+      <div className="rounded-2xl border-2 border-ink bg-green-100 p-4 text-center">
+        <div className="font-black text-sm text-green-800">✓ ENTERED — GOOD LUCK!</div>
+        <div className="mt-1 font-black text-2xl text-green-900">TICKET #{ticket}</div>
+        <p className="text-[11px] font-bold text-ink/50 mt-1">saved in your profile — screenshot it 📸</p>
       </div>
     )
   }
@@ -47,9 +49,16 @@ export function EnterButton({ raffleId, ended, upcoming }: { raffleId: string; e
         body: JSON.stringify({ raffleId }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.message || 'failed to enter')
-      setDone(true)
-      toast.success('Entered the raffle! 🐴 good luck')
+      if (!res.ok) {
+        if (data.needsWallet) {
+          toast.error(data.message)
+          setTimeout(() => { window.location.href = '/profile' }, 1200)
+          return
+        }
+        throw new Error(data.message || 'failed to enter')
+      }
+      setTicket(data.ticketNumber)
+      toast.success(`Entered! Your ticket: #${data.ticketNumber} 🎫`)
       router.refresh()
     } catch (e: any) {
       toast.error(e.message || 'failed to enter')

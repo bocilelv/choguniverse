@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { RaffleCard } from '@/components/RaffleCard'
 import { ConnectAccounts } from './ConnectAccounts'
 import { WalletForms } from './WalletForms'
+import { TicketCollection } from './TicketCollection'
 
 export const dynamic = 'force-dynamic'
 
@@ -83,6 +84,12 @@ export default async function ProfilePage() {
           ) : <div className="text-sm font-bold text-ink/40">not connected</div>}
         </div>
       </div>
+
+      {/* TICKET COLLECTION */}
+      <TicketCollection tickets={user.entries.map((e) => ({
+        id: e.id, ticketNumber: e.ticketNumber, isWinner: e.isWinner,
+        raffle: { id: e.raffle.id, title: e.raffle.title, image: e.raffle.image, endDate: e.raffle.endDate, blockchain: e.raffle.blockchain },
+      }))} />
 
       {/* ENTRY HISTORY */}
       <h2 className="font-black text-xl mt-10 mb-4">MY RAFFLES ({raffles.length})</h2>

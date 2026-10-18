@@ -41,10 +41,11 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  const ticketNumber = raffle.entriesCount + 1
   await prisma.$transaction([
-    prisma.entry.create({ data: { userId: user.id, raffleId, isValid: true } }),
+    prisma.entry.create({ data: { userId: user.id, raffleId, isValid: true, ticketNumber } }),
     prisma.raffle.update({ where: { id: raffleId }, data: { entriesCount: { increment: 1 } } }),
   ])
 
-  return NextResponse.json({ ok: true })
+  return NextResponse.json({ ok: true, ticketNumber })
 }

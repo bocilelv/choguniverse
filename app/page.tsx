@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db'
 import { RaffleCard } from '@/components/RaffleCard'
+import { LiveFeed } from '@/components/LiveFeed'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,6 +36,9 @@ export default async function Home() {
           </a>
         </div>
       </section>
+
+      {/* LIVE ENTRIES FEED */}
+      <LiveFeed />
 
       {/* LIVE */}
       <div className="flex items-center gap-3 mb-4">
