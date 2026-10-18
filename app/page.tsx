@@ -1,15 +1,18 @@
 import { prisma } from '@/lib/db'
 import { RaffleCard } from '@/components/RaffleCard'
 
-
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
-  const raffles = await prisma.raffle.findMany({
-    where: { status: 'LIVE' },
-    orderBy: { endDate: 'asc' },
-    take: 6,
+  const raffles = await prisma.raffle.findMany({ orderBy: { endDate: 'asc' } })
+  const now = Date.now()
+  const live = raffles.filter((r) => r.startDate.getTime() <= now && r.endDate.getTime() > now)
+  const ended = raffles.filter((r) => r.endDate.getTime() <= now)
+
+  const toCard = (r: (typeof raffles)[number]) => ({
+    ...r, startDate: r.startDate.toISOString(), endDate: r.endDate.toISOString(),
   })
+
   return (
     <main className="max-w-6xl mx-auto px-4 py-8">
       {/* HERO — art bar ala choguniverse */}
@@ -29,13 +32,34 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* GRID */}
-      <h2 className="font-black text-xl mb-4">LIVE RAFFLES</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-        {raffles.map((r) => (
-          <RaffleCard key={r.id} raffle={{ ...r, endDate: r.endDate.toISOString() }} />
-        ))}
+      {/* LIVE */}
+      <div className="flex items-center gap-3 mb-4">
+        <h2 className="font-black text-xl">LIVE</h2>
+        <span className="text-[10px] font-black px-2 py-1 rounded-md bg-pink text-white border-2 border-ink">● RUNNING NOW</span>
       </div>
+      {live.length ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {live.map((r) => <RaffleCard key={r.id} raffle={toCard(r)} />)}
+        </div>
+      ) : (
+        <div className="rounded-2xl border-2 border-dashed border-ink/30 p-10 text-center font-bold text-ink/40 mb-8">
+          no live raffles right now — check back soon
+        </div>
+      )}
+
+      {/* ENDED */}
+      <div className="flex items-center gap-3 mb-4 mt-10">
+        <h2 className="font-black text-xl">ENDED</h2>
+      </div>
+      {ended.length ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {ended.map((r) => <RaffleCard key={r.id} raffle={toCard(r)} />)}
+        </div>
+      ) : (
+        <div className="rounded-2xl border-2 border-dashed border-ink/30 p-10 text-center font-bold text-ink/40">
+          no ended raffles yet
+        </div>
+      )}
     </main>
   )
 }

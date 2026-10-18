@@ -11,10 +11,13 @@ async function bodyToData(body: any) {
     startDate: body.startDate ? new Date(body.startDate) : new Date(),
     endDate: new Date(body.endDate),
     totalSpots: Math.max(1, parseInt(body.totalSpots) || 100),
-    twitterFollowRequired: body.twitterFollowRequired !== false,
-    twitterHandle: String(body.twitterHandle || 'chog').trim(),
-    discordRequired: body.discordRequired !== false,
-    discordInvite: String(body.discordInvite || 'https://discord.gg/chog').trim(),
+    twitterHandle1: String(body.twitterHandle1 || '').trim() || 'chog',
+    twitterHandle2: body.twitterHandle2 ? String(body.twitterHandle2).trim() || null : null,
+    twitterHandle3: body.twitterHandle3 ? String(body.twitterHandle3).trim() || null : null,
+    discordInvite1: body.discordInvite1 ? String(body.discordInvite1).trim() || null : null,
+    discordInvite2: body.discordInvite2 ? String(body.discordInvite2).trim() || null : null,
+    likePostUrl: body.likePostUrl ? String(body.likePostUrl).trim() || null : null,
+    rtPostUrl: body.rtPostUrl ? String(body.rtPostUrl).trim() || null : null,
     status: 'LIVE',
   }
 }

@@ -2,7 +2,6 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
-// status: LIVE (jalan sekarang), ENDED, UPCOMING (belum mulai)
 const now = Date.now()
 const HOUR = 3600 * 1000
 const DAY = 24 * HOUR
@@ -17,7 +16,9 @@ const raffles = [
     endDate: new Date(now + 18 * HOUR),
     totalSpots: 50,
     entriesCount: 132,
-    twitterHandle: 'chog',
+    twitterHandle1: 'chog',
+    twitterHandle2: 'bocilelv',
+    discordInvite1: 'https://discord.gg/chog',
   },
   {
     title: 'CHOG FRENS GIVEAWAY',
@@ -28,7 +29,9 @@ const raffles = [
     endDate: new Date(now + 3 * DAY),
     totalSpots: 10,
     entriesCount: 64,
-    twitterHandle: 'chog',
+    twitterHandle1: 'chog',
+    likePostUrl: 'https://x.com/chog/status/1',
+    rtPostUrl: 'https://x.com/chog/status/1',
   },
   {
     title: 'MYSTERY CHEST DROP',
@@ -39,7 +42,11 @@ const raffles = [
     endDate: new Date(now + 7 * HOUR),
     totalSpots: 20,
     entriesCount: 210,
-    twitterHandle: 'chog',
+    twitterHandle1: 'chog',
+    twitterHandle2: 'bocilelv',
+    twitterHandle3: 'choguniverse',
+    discordInvite1: 'https://discord.gg/chog',
+    discordInvite2: 'https://discord.gg/chogfrens',
   },
   {
     title: 'CHOGFLIP SEASON 1',
@@ -50,7 +57,8 @@ const raffles = [
     endDate: new Date(now + 2 * DAY),
     totalSpots: 100,
     entriesCount: 351,
-    twitterHandle: 'chog',
+    twitterHandle1: 'chog',
+    discordInvite1: 'https://discord.gg/chog',
   },
   {
     title: 'DEGEN NIGHT WL',
@@ -61,7 +69,8 @@ const raffles = [
     endDate: new Date(now - 2 * DAY),
     totalSpots: 30,
     entriesCount: 187,
-    twitterHandle: 'chog',
+    twitterHandle1: 'chog',
+    discordInvite1: 'https://discord.gg/chog',
   },
   {
     title: 'CHOGLIST GRAND OPENING',
@@ -72,7 +81,8 @@ const raffles = [
     endDate: new Date(now + 8 * DAY),
     totalSpots: 100,
     entriesCount: 0,
-    twitterHandle: 'chog',
+    twitterHandle1: 'chog',
+    discordInvite1: 'https://discord.gg/chog',
   },
   {
     title: 'TRENCH VIBE COLLAB WL',
@@ -83,7 +93,8 @@ const raffles = [
     endDate: new Date(now + 10 * DAY),
     totalSpots: 40,
     entriesCount: 0,
-    twitterHandle: 'bocilelv',
+    twitterHandle1: 'bocilelv',
+    likePostUrl: 'https://x.com/bocilelv/status/1',
   },
 ]
 
@@ -94,8 +105,6 @@ async function main() {
     await prisma.raffle.create({
       data: {
         ...r,
-        twitterFollowRequired: true,
-        discordRequired: true,
         status: new Date(r.startDate) > new Date(now) ? 'UPCOMING' : new Date(r.endDate) < new Date(now) ? 'ENDED' : 'LIVE',
       },
     })

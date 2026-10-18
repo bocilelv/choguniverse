@@ -4,39 +4,20 @@ import { useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 
 const LINKS = [
-  { href: '/raffles', label: 'Raffles' },
   { href: '/profile', label: 'Profile' },
   { href: '/admin', label: 'Admin' },
 ]
 
-export function useDarkMode() {
-  const [dark, setDark] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false
-    const saved = localStorage.getItem('choglist-theme')
-    if (saved === 'dark') { document.documentElement.classList.add('dark'); return true }
-    return false
-  })
-  const toggle = () => {
-    setDark((d) => {
-      const next = !d
-      if (next) { document.documentElement.classList.add('dark'); localStorage.setItem('choglist-theme', 'dark') }
-      else { document.documentElement.classList.remove('dark'); localStorage.setItem('choglist-theme', 'light') }
-      return next
-    })
-  }
-  return { dark, toggle }
-}
-
 export function Navbar() {
   const { data: session, status } = useSession()
   const [open, setOpen] = useState(false)
-  const { dark, toggle } = useDarkMode()
 
   return (
     <nav className="sticky top-0 z-50 border-b-2 border-ink bg-cream/95 backdrop-blur">
       <div className="max-w-6xl mx-auto px-3 sm:px-4 h-14 flex items-center justify-between gap-2">
-        <a href="/" className="flex items-center gap-1 font-black text-base sm:text-lg shrink-0">
-          <span className="text-xl sm:text-2xl">🐴</span>
+        <a href="/" className="flex items-center gap-2 font-black text-base sm:text-lg shrink-0">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/chog-logo.webp" alt="chog" className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg border-2 border-ink object-cover" />
           <span>CHOG</span><span className="text-pink">LIST</span>
         </a>
 
@@ -66,10 +47,6 @@ export function Navbar() {
               LOGIN
             </a>
           )}
-          <button aria-label="theme" onClick={toggle}
-            className="ml-2 w-9 h-9 flex items-center justify-center rounded-lg border-2 border-ink bg-white text-base">
-            {dark ? '☀️' : '🌙'}
-          </button>
         </div>
 
         {/* Burger (mobile) */}
@@ -107,10 +84,6 @@ export function Navbar() {
               LOGIN
             </a>
           )}
-          <button aria-label="theme" onClick={toggle}
-            className="text-left font-black text-sm px-4 py-3 rounded-xl border-2 border-ink bg-white">
-            {dark ? '☀️ LIGHT MODE' : '🌙 DARK MODE'}
-          </button>
         </div>
       )}
     </nav>

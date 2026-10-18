@@ -22,14 +22,17 @@ export default async function RaffleDetail({ params }: { params: { id: string } 
   const upcoming = start > now
   const ended = end <= now
 
+  const follows = [r.twitterHandle1, r.twitterHandle2, r.twitterHandle3].filter(Boolean)
+  const discords = [r.discordInvite1, r.discordInvite2].filter(Boolean)
+
   return (
     <main className="max-w-3xl mx-auto px-4 py-8">
-      <a href="/raffles" className="inline-block font-black text-xs mb-4 hover:text-pink">← BACK TO RAFFLES</a>
+      <a href="/" className="inline-block font-black text-xs mb-4 hover:text-pink">← BACK</a>
 
       <div className="rounded-3xl border-2 border-ink overflow-hidden bg-white shadow-[6px_6px_0_ink]">
         <div className="relative aspect-video bg-cream2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={r.image} alt={r.title} className="w-full h-full object-cover" />
+          <img src={r.image} alt={r.title} className="w-full h-full object-contain" />
           <span className={`absolute top-3 left-3 text-xs font-black px-3 py-1.5 rounded-lg border-2 border-ink ${upcoming ? 'bg-gold' : ended ? 'bg-ink text-cream' : 'bg-pink text-white'}`}>
             {upcoming ? 'SOON' : ended ? 'ENDED' : '● LIVE'}
           </span>
@@ -62,14 +65,24 @@ export default async function RaffleDetail({ params }: { params: { id: string } 
           <div className="mt-5 rounded-2xl border-2 border-ink bg-cream2 p-4">
             <div className="font-black text-[10px] text-ink/50 uppercase mb-2">Requirements</div>
             <div className="space-y-2">
-              {r.twitterFollowRequired && (
+              {follows.map((h) => (
+                <div key={h} className="flex items-center gap-2 font-bold text-sm">
+                  <span className="text-green-600">✅</span> Follow <a href={`https://x.com/${h}`} target="_blank" rel="noopener" className="text-pink underline">@{h}</a> on X
+                </div>
+              ))}
+              {discords.map((d, i) => (
+                <div key={d} className="flex items-center gap-2 font-bold text-sm">
+                  <span className="text-green-600">✅</span> Join <a href={d || "#"} target="_blank" rel="noopener" className="text-pink underline">Discord server {i + 1}</a>
+                </div>
+              ))}
+              {r.likePostUrl && (
                 <div className="flex items-center gap-2 font-bold text-sm">
-                  <span className="text-green-600">✅</span> Follow <a href={`https://x.com/${r.twitterHandle}`} target="_blank" rel="noopener" className="text-pink underline">@{r.twitterHandle}</a> on X
+                  <span className="text-green-600">✅</span> <a href={r.likePostUrl} target="_blank" rel="noopener" className="text-pink underline">Like this post</a>
                 </div>
               )}
-              {r.discordRequired && (
+              {r.rtPostUrl && (
                 <div className="flex items-center gap-2 font-bold text-sm">
-                  <span className="text-green-600">✅</span> Join the <a href={r.discordInvite} target="_blank" rel="noopener" className="text-pink underline">Chog Discord</a>
+                  <span className="text-green-600">✅</span> <a href={r.rtPostUrl} target="_blank" rel="noopener" className="text-pink underline">RT this post</a>
                 </div>
               )}
             </div>

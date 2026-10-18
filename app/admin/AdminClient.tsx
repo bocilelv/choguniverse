@@ -13,14 +13,17 @@ type Entry = {
 type Raffle = {
   id: string; title: string; description: string | null; image: string; blockchain: string
   startDate: string; endDate: string; totalSpots: number; entriesCount: number
-  twitterHandle: string; discordInvite: string; status: string; createdAt: string
-  entries: Entry[]
+  twitterHandle1: string; twitterHandle2: string | null; twitterHandle3: string | null
+  discordInvite1: string | null; discordInvite2: string | null
+  likePostUrl: string | null; rtPostUrl: string | null
+  status: string; createdAt: string; entries: Entry[]
 }
 
 const EMPTY_FORM = {
   title: '', description: '', image: 'https://picsum.photos/seed/newchog/600/600',
-  blockchain: 'MONAD', endDate: '', totalSpots: '100', twitterHandle: 'chog',
-  twitterFollowRequired: true, discordRequired: true, discordInvite: 'https://discord.gg/chog',
+  blockchain: 'MONAD', endDate: '', totalSpots: '100',
+  twitterHandle1: '', twitterHandle2: '', twitterHandle3: '',
+  discordInvite1: '', discordInvite2: '', likePostUrl: '', rtPostUrl: '',
 }
 
 function toLocalInput(iso: string) {
@@ -41,12 +44,24 @@ export function AdminClient({ raffles }: { raffles: Raffle[] }) {
 
   const submit = async () => {
     if (!form.title || !form.endDate) return toast.error('title & end date wajib')
+    if (!form.twitterHandle1.trim()) return toast.error('minimal 1 follow requirement (handle #1) wajib diisi')
     setBusy(true)
     try {
+      const payload = {
+        ...form,
+        endDate: new Date(form.endDate).toISOString(),
+        // optional fields: string kosong -> null
+        twitterHandle2: form.twitterHandle2.trim() || null,
+        twitterHandle3: form.twitterHandle3.trim() || null,
+        discordInvite1: form.discordInvite1.trim() || null,
+        discordInvite2: form.discordInvite2.trim() || null,
+        likePostUrl: form.likePostUrl.trim() || null,
+        rtPostUrl: form.rtPostUrl.trim() || null,
+      }
       const res = await fetch(editId ? `/api/admin/raffles/${editId}` : '/api/admin/raffles', {
         method: editId ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, endDate: new Date(form.endDate).toISOString() }),
+        body: JSON.stringify(payload),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || 'failed')
@@ -83,8 +98,11 @@ export function AdminClient({ raffles }: { raffles: Raffle[] }) {
     setEditId(r.id); setTab('create')
     setForm({
       title: r.title, description: r.description || '', image: r.image, blockchain: r.blockchain,
-      endDate: toLocalInput(r.endDate), totalSpots: String(r.totalSpots), twitterHandle: r.twitterHandle,
-      twitterFollowRequired: true, discordRequired: true, discordInvite: r.discordInvite,
+      endDate: toLocalInput(r.endDate), totalSpots: String(r.totalSpots),
+      twitterHandle1: r.twitterHandle1 || '', twitterHandle2: r.twitterHandle2 || '',
+      twitterHandle3: r.twitterHandle3 || '', discordInvite1: r.discordInvite1 || '',
+      discordInvite2: r.discordInvite2 || '', likePostUrl: r.likePostUrl || '',
+      rtPostUrl: r.rtPostUrl || '',
     })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -197,17 +215,51 @@ export function AdminClient({ raffles }: { raffles: Raffle[] }) {
                 <option>MONAD</option><option>ROBINHOOD</option><option>SUI</option><option>INJ</option><option>BTC</option>
               </select>
             </label>
-            <label className="block">
-              <span className="font-black text-[11px] text-ink/60">Follow requirement (X handle)</span>
-              <input value={form.twitterHandle} onChange={(e) => setF('twitterHandle', e.target.value.replace(/^@/, ''))}
-                className="mt-1 w-full font-bold text-sm border-2 border-ink rounded-xl px-3 py-2.5 bg-cream2 focus:outline-none focus:bg-white" />
-            </label>
-            <label className="block sm:col-span-2">
-              <span className="font-black text-[11px] text-ink/60">Discord invite URL</span>
-              <input value={form.discordInvite} onChange={(e) => setF('discordInvite', e.target.value)}
-                className="mt-1 w-full font-bold text-sm border-2 border-ink rounded-xl px-3 py-2.5 bg-cream2 focus:outline-none focus:bg-white" />
-            </label>
           </div>
+
+          {/* REQUIREMENTS */}
+          <div className="mt-5 rounded-2xl border-2 border-ink bg-cream2 p-4">
+            <div className="font-black text-xs text-ink/50 uppercase mb-3">Requirements</div>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <label className="block">
+                <span className="font-black text-[11px] text-ink/60">Follow X handle #1 *</span>
+                <input value={form.twitterHandle1} onChange={(e) => setF('twitterHandle1', e.target.value.replace(/^@/, ''))} placeholder="chog"
+                  className="mt-1 w-full font-bold text-sm border-2 border-ink rounded-xl px-3 py-2.5 bg-white focus:outline-none" />
+              </label>
+              <label className="block">
+                <span className="font-black text-[11px] text-ink/60">Follow X handle #2 (optional)</span>
+                <input value={form.twitterHandle2} onChange={(e) => setF('twitterHandle2', e.target.value.replace(/^@/, ''))} placeholder="bocilelv"
+                  className="mt-1 w-full font-bold text-sm border-2 border-ink rounded-xl px-3 py-2.5 bg-white focus:outline-none" />
+              </label>
+              <label className="block">
+                <span className="font-black text-[11px] text-ink/60">Follow X handle #3 (optional)</span>
+                <input value={form.twitterHandle3} onChange={(e) => setF('twitterHandle3', e.target.value.replace(/^@/, ''))} placeholder="choguniverse"
+                  className="mt-1 w-full font-bold text-sm border-2 border-ink rounded-xl px-3 py-2.5 bg-white focus:outline-none" />
+              </label>
+              <label className="block">
+                <span className="font-black text-[11px] text-ink/60">Discord invite URL #1 (optional)</span>
+                <input value={form.discordInvite1} onChange={(e) => setF('discordInvite1', e.target.value)} placeholder="https://discord.gg/chog"
+                  className="mt-1 w-full font-bold text-sm border-2 border-ink rounded-xl px-3 py-2.5 bg-white focus:outline-none" />
+              </label>
+              <label className="block">
+                <span className="font-black text-[11px] text-ink/60">Discord invite URL #2 (optional)</span>
+                <input value={form.discordInvite2} onChange={(e) => setF('discordInvite2', e.target.value)} placeholder="https://discord.gg/chogfrens"
+                  className="mt-1 w-full font-bold text-sm border-2 border-ink rounded-xl px-3 py-2.5 bg-white focus:outline-none" />
+              </label>
+              <label className="block">
+                <span className="font-black text-[11px] text-ink/60">Like this post (optional)</span>
+                <input value={form.likePostUrl} onChange={(e) => setF('likePostUrl', e.target.value)} placeholder="https://x.com/chog/status/…"
+                  className="mt-1 w-full font-bold text-sm border-2 border-ink rounded-xl px-3 py-2.5 bg-white focus:outline-none" />
+              </label>
+              <label className="block">
+                <span className="font-black text-[11px] text-ink/60">RT this post (optional)</span>
+                <input value={form.rtPostUrl} onChange={(e) => setF('rtPostUrl', e.target.value)} placeholder="https://x.com/chog/status/…"
+                  className="mt-1 w-full font-bold text-sm border-2 border-ink rounded-xl px-3 py-2.5 bg-white focus:outline-none" />
+              </label>
+            </div>
+            <p className="mt-2 text-[11px] font-bold text-ink/40">minimal handle #1 wajib; sisanya optional</p>
+          </div>
+
           <div className="mt-4 flex flex-wrap gap-2">
             <button onClick={submit} disabled={busy}
               className="font-black text-sm bg-pink text-white border-2 border-ink rounded-xl px-6 py-3 shadow-[3px_3px_0_ink] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50">

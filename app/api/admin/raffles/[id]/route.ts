@@ -11,7 +11,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (body.image !== undefined) data.image = String(body.image).trim()
   if (body.blockchain !== undefined) data.blockchain = String(body.blockchain).trim()
   if (body.totalSpots !== undefined) data.totalSpots = Math.max(1, parseInt(body.totalSpots) || 100)
-  if (body.twitterHandle !== undefined) data.twitterHandle = String(body.twitterHandle).trim()
+  if (body.twitterHandle1 !== undefined) data.twitterHandle1 = String(body.twitterHandle1).trim() || 'chog'
+  if (body.twitterHandle2 !== undefined) data.twitterHandle2 = String(body.twitterHandle2).trim() || null
+  if (body.twitterHandle3 !== undefined) data.twitterHandle3 = String(body.twitterHandle3).trim() || null
+  if (body.discordInvite1 !== undefined) data.discordInvite1 = String(body.discordInvite1).trim() || null
+  if (body.discordInvite2 !== undefined) data.discordInvite2 = String(body.discordInvite2).trim() || null
+  if (body.likePostUrl !== undefined) data.likePostUrl = String(body.likePostUrl).trim() || null
+  if (body.rtPostUrl !== undefined) data.rtPostUrl = String(body.rtPostUrl).trim() || null
   if (body.endDate !== undefined) data.endDate = new Date(body.endDate)
   if (body.startDate !== undefined) data.startDate = new Date(body.startDate)
   try {

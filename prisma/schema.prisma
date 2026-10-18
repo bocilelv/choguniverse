@@ -25,22 +25,27 @@ model User {
 }
 
 model Raffle {
-  id                   String   @id @default(cuid())
-  title                String
-  description          String?
-  image                String
-  blockchain           String   @default("MONAD")
-  startDate            DateTime @default(now())
-  endDate              DateTime
-  totalSpots           Int      @default(100)
-  entriesCount         Int      @default(0)
-  twitterFollowRequired Boolean @default(true)
-  twitterHandle        String   @default("chog")
-  discordRequired      Boolean  @default(true)
-  discordInvite        String   @default("https://discord.gg/chog")
-  status               String   @default("LIVE")
-  createdAt            DateTime @default(now())
-  entries              Entry[]
+  id                    String   @id @default(cuid())
+  title                 String
+  description           String?
+  image                 String
+  blockchain            String   @default("MONAD")
+  startDate             DateTime @default(now())
+  endDate               DateTime
+  totalSpots            Int      @default(100)
+  entriesCount          Int      @default(0)
+  // requirements: follow up to 3 (1 wajib, 2 optional)
+  twitterHandle1        String   @default("chog")
+  twitterHandle2        String?
+  twitterHandle3        String?
+  discordRequired       Boolean  @default(true)
+  discordInvite1        String?
+  discordInvite2        String?
+  likePostUrl           String?  // optional
+  rtPostUrl             String?  // optional
+  status                String   @default("LIVE")
+  createdAt             DateTime @default(now())
+  entries               Entry[]
 }
 
 model Entry {

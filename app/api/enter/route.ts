@@ -22,9 +22,9 @@ export async function POST(req: NextRequest) {
   if (existing) return NextResponse.json({ message: 'already entered this raffle' }, { status: 400 })
 
   // Requirement check (mock dulu — lihat lib/twitter.ts untuk ganti ke X API)
-  if (raffle.twitterFollowRequired) {
-    const follows = await checkIfUserFollows(raffle.twitterHandle, 'mock-token')
-    if (!follows) return NextResponse.json({ message: `follow @${raffle.twitterHandle} on X first` }, { status: 403 })
+  if (raffle.twitterHandle1) {
+    const follows = await checkIfUserFollows(raffle.twitterHandle1, 'mock-token')
+    if (!follows) return NextResponse.json({ message: `follow @${raffle.twitterHandle1} on X first` }, { status: 403 })
   }
 
   await prisma.$transaction([

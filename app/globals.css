@@ -2,24 +2,3 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ==== DARK THEME (toggle via tombol 🌙 di navbar, class .dark di <html>) ==== */
-.dark body {
-  background-color: #12101a;
-  color: #f2efe8;
-}
-.dark nav {
-  background-color: #17141f !important;
-}
-.dark .bg-cream { background-color: #12101a !important; }
-.dark .bg-cream2 { background-color: #1d1930 !important; }
-.dark .bg-white { background-color: #221e33 !important; }
-.dark .text-ink { color: #f2efe8 !important; }
-.dark .border-ink { border-color: #f2efe8 !important; }
-.dark .border-ink\/10, .dark .border-ink\/15, .dark .border-ink\/20 { border-color: rgba(242, 239, 232, 0.15) !important; }
-.dark .border-ink\/30, .dark .border-ink\/40 { border-color: rgba(242, 239, 232, 0.3) !important; }
-.dark .text-ink\/40 { color: rgba(242, 239, 232, 0.45) !important; }
-.dark .text-ink\/50 { color: rgba(242, 239, 232, 0.55) !important; }
-.dark .text-ink\/60 { color: rgba(242, 239, 232, 0.65) !important; }
-.dark .text-ink\/70 { color: rgba(242, 239, 232, 0.75) !important; }
-.dark .bg-gold { background-color: #3a3220 !important; }
-.dark footer { border-color: rgba(242, 239, 232, 0.1) !important; }
