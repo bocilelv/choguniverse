@@ -441,6 +441,23 @@ async function refreshHandles() {
 function countIn(num) { return Object.values(state.pins).filter(p => p.country === num).length; }
 
 async function refreshState() {
+  // 1) SNAPSHOT dari data server (cached, instan) — render pin langsung
+  try {
+    const r = await fetch(DS + '/state', { headers: { 'Accept': 'application/json' } });
+    if (r.ok) {
+      const snap = await r.json();
+      if (snap && snap.pins) {
+        Object.assign(state.pins, snap.pins);
+        Object.assign(state.owners, snap.owners || {});
+        Object.assign(state.handles, snap.handles || {});
+        Object.assign(state.ranks, snap.ranks || {});
+        renderPins();
+        renderMyChogs();
+        return; // snapshot cukup — ga perlu scan RPC berat dari browser
+      }
+    }
+  } catch (e) {}
+  // 2) fallback: scan RPC langsung (lambat, hanya kalau data server down)
   try {
     const cur = await prov.getBlockNumber();
     const from = Math.max(0, cur - 2500000); // RH block speed tinggi — window luas biar pin ga hilang
@@ -679,7 +696,7 @@ $('xbtn').onclick = async () => {
 };
 
 // ---------- feed (combo: testnet events + Monad mainnet via data server) ----------
-const DS = location.port === '8901' ? 'http://' + location.hostname + ':8902' : (location.hostname.includes('vercel') ? '/api/mapfeed' : '');
+const DS = location.port === '8901' ? 'http://' + location.hostname + ':8902' : '/api/mapfeed';
 async function refreshFeed() {
   try {
     // 1) testnet events — langsung dari chain (sumber utama)

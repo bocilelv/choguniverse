@@ -15,7 +15,7 @@ export function Navbar() {
   return (
     <nav className="sticky top-0 z-50 border-b-2 border-ink bg-cream/95 backdrop-blur">
       <div className="max-w-6xl mx-auto px-3 sm:px-4 h-14 flex items-center justify-between gap-2">
-        <a href="/" className="flex items-center gap-2 font-black text-base sm:text-lg shrink-0">
+        <a href="/home" className="flex items-center gap-2 font-black text-base sm:text-lg shrink-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/chog-logo.webp" alt="chog" className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg border-2 border-ink object-cover" />
           <span>CHOG</span><span className="text-pink">UNIVERSE</span>

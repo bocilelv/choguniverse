@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Choguniverse — The Chog World Map</title>
+  <meta name="description" content="Claim your spot. Plant your chog. Pin your X. The Chog World Order, one pin at a time.">
+  <link rel="icon" type="image/webp" href="assets/logo.webp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Koulen&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cream:#EFE6CE; --cream2:#F7F0DD; --ink:#2B2118; --ink-soft:#5C4F3F;
+      --pink:#EC2F7A; --pink-dark:#C41F62; --navy:#1B2B4B; --navy-deep:#13203A;
+      --gold:#F2C14E; --purple:#7B5FC7;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:var(--cream); color:var(--ink); font-family:'Nunito',sans-serif; overflow-x:hidden; }
+    h1,h2,h3,.koulen { font-family:'Koulen',sans-serif; font-weight:400; letter-spacing:.5px; }
+
+    /* ===== NAV ===== */
+    .nav { position:fixed; top:0; left:0; right:0; z-index:100; display:flex; align-items:center;
+      justify-content:space-between; padding:12px 26px; background:rgba(239,230,206,.92);
+      border-bottom:3px solid var(--ink); backdrop-filter:blur(8px); }
+    .brand { display:flex; align-items:center; gap:12px; text-decoration:none; color:var(--ink); }
+    .brand img { width:46px; height:46px; border-radius:12px; border:2.5px solid var(--ink); }
+    .brand .t1 { font-family:'Koulen'; font-size:24px; line-height:1; }
+    .brand .t2 { font-size:10px; font-weight:900; color:var(--pink); letter-spacing:2px; }
+
+    .nav-right { display:flex; gap:12px; align-items:center; }
+    .nav-logo { width:46px; height:46px; border-radius:12px; border:2.5px solid var(--ink);
+      background:var(--cream2); display:flex; align-items:center; justify-content:center;
+      cursor:pointer; transition:.15s; box-shadow:3px 3px 0 var(--ink); overflow:hidden; }
+    .nav-logo:hover { transform:translate(-1px,-1px); box-shadow:4px 4px 0 var(--ink); }
+    .nav-logo img { width:42px; height:42px; object-fit:contain; }
+
+    /* X dropdown */
+    .dd { position:relative; }
+    .dd-menu { position:absolute; top:calc(100% + 10px); right:0; background:var(--cream2);
+      border:3px solid var(--ink); border-radius:14px; box-shadow:5px 5px 0 rgba(43,33,24,.35);
+      min-width:190px; display:none; overflow:hidden; }
+    .dd.open .dd-menu { display:block; }
+    .dd-item { display:flex; align-items:center; gap:10px; padding:11px 16px; cursor:pointer;
+      font-weight:900; font-size:14px; text-decoration:none; color:var(--ink); }
+    .dd-item:hover { background:var(--gold); }
+    .dd-item .xsm { width:15px; height:15px; fill:var(--ink); }
+
+    /* ===== PAGE ===== */
+    .page { min-height:100vh; display:flex; flex-direction:column; justify-content:center;
+      padding:110px 6vw 120px; position:relative; overflow:hidden; }
+    /* hero art = layer terpisah, digerakin mouse (parallax ala chog.xyz) */
+    .heroart { position:absolute; top:-5%; bottom:-5%; left:-5%; right:-5%; z-index:0; min-height:110%;
+      background:url('assets/hero.webp') center/cover no-repeat;
+      will-change:transform; }
+    /* fade: kiri pekat (area teks) + atas halus — KANAN BAWAH (chog + map) TETEP JELAS */
+    .page::before { content:''; position:absolute; inset:0; z-index:1;
+      background:
+        linear-gradient(90deg, rgba(239,230,206,.94) 0%, rgba(239,230,206,.80) 38%, rgba(239,230,206,.12) 62%, rgba(239,230,206,0) 78%),
+        linear-gradient(180deg, rgba(239,230,206,.92) 0%, rgba(239,230,206,.30) 34%, rgba(239,230,206,0) 58%); }
+    .page > *:not(.heroart) { position:relative; z-index:2; }
+
+    /* judul explore */
+    .explore { font-family:'Koulen'; font-size:clamp(38px, 6vw, 64px); text-transform:uppercase;
+      line-height:1; margin-bottom:8px; }
+    .explore span { color:var(--pink); }
+    .explore-sub { font-weight:700; color:var(--ink-soft); font-size:16.5px; margin-bottom:44px; }
+
+    /* ===== PILLS — vertikal, ukuran SAMA semua ===== */
+    .pills { display:flex; flex-direction:column; gap:26px; max-width:560px; width:100%; }
+    .util { text-decoration:none; color:var(--ink); display:flex; align-items:center; }
+    .util .pill { display:flex; align-items:center; gap:22px; border:4px solid var(--ink);
+      border-radius:999px; overflow:hidden; background:var(--cream2);
+      box-shadow:7px 7px 0 rgba(43,33,24,.35); transition:transform .18s, box-shadow .18s;
+      padding:10px 40px 10px 14px; width:100%; }
+    .util:hover .pill { transform:translate(-3px,-3px); box-shadow:10px 10px 0 rgba(43,33,24,.4); }
+    .util .pill img { height:76px; width:76px; object-fit:contain; transition:.18s;
+      border-radius:50%; flex-shrink:0; }
+    .util:hover .pill img { transform:scale(1.07); }
+    .util .ptxt .plabel { font-family:'Koulen'; font-size:clamp(22px, 3vw, 30px); text-transform:uppercase; line-height:1; }
+    .util .ptxt .pdesc { font-weight:700; font-size:14px; color:var(--ink-soft); margin-top:3px; }
+
+    /* ===== FOOTER — PALING BAWAH (fixed, di body level) ===== */
+    #siteFooter { position:fixed; bottom:16px; left:0; right:0; text-align:center; z-index:50;
+      pointer-events:none; }
+    #siteFooter a { pointer-events:auto; }
+    .fline1 { font-weight:900; font-size:15px; }
+    .fline1 a { color:var(--pink); text-decoration:none; }
+    .fline2 { font-weight:700; font-size:13.5px; color:var(--ink-soft); margin-top:3px; }
+
+    @media (max-width:560px) {
+      .pills { gap:20px; }
+      .util .pill { padding:8px 26px 8px 10px; gap:16px; }
+      .util .pill img { height:56px; width:56px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="brand" href="/">
+    <img src="assets/logo.webp" alt="chog">
+    <span><span class="t1">CHOGUNIVERSE</span><br><span class="t2">CHOG SQUAD</span></span>
+  </a>
+  <div class="nav-right">
+    <a class="nav-logo" title="Chog Genesis on OpenSea"
+       href="https://opensea.io/collection/chog-genesis" target="_blank" rel="noopener">
+      <img src="assets/nav-opensea.webp" alt="OpenSea">
+    </a>
+    <div class="dd" id="xdd">
+      <div class="nav-logo" title="X / Twitter">
+        <img src="assets/nav-x.webp" alt="X">
+      </div>
+      <div class="dd-menu">
+        <a class="dd-item" href="https://x.com/bocilelv" target="_blank" rel="noopener">
+          <svg class="xsm" viewBox="0 0 24 24"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.4l-5.8-7.59-6.64 7.59H.47l8.6-9.83L0 1.15h7.59l5.24 6.93zm-1.29 19.5h2.04L6.49 3.24H4.3z"/></svg>
+          @bocilelv
+        </a>
+        <a class="dd-item" href="https://x.com/ChogNFT" target="_blank" rel="noopener">
+          <svg class="xsm" viewBox="0 0 24 24"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.4l-5.8-7.59-6.64 7.59H.47l8.6-9.83L0 1.15h7.59l5.24 6.93zm-1.29 19.5h2.04L6.49 3.24H4.3z"/></svg>
+          @ChogNFT
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main class="page">
+  <div class="heroart" id="heroart"></div>
+  <div class="explore">EXPLORE THE <span>UNIVERSE</span></div>
+  <p class="explore-sub">pick a door. every door is a chog world.</p>
+
+  <div class="pills">
+    <a class="util" href="/map">
+      <div class="pill">
+        <img src="assets/util-map.webp" alt="world map">
+        <div class="ptxt">
+          <div class="plabel">WORLD MAP</div>
+          <div class="pdesc">where da chog come from</div>
+        </div>
+      </div>
+    </a>
+    <a class="util" href="/chogffle">
+      <div class="pill">
+        <img src="assets/util-raffle.webp" alt="raffle">
+        <div class="ptxt">
+          <div class="plabel">RAFFLE</div>
+          <div class="pdesc">hold a chog, run one. hold a chog, win one</div>
+        </div>
+      </div>
+    </a>
+    <a class="util" href="/chogping">
+      <div class="pill">
+        <img src="assets/util-loveletter.webp" alt="love letter">
+        <div class="ptxt">
+          <div class="plabel">LOVE LETTER</div>
+          <div class="pdesc">paid announcement, delivered with a Chogping!</div>
+        </div>
+      </div>
+    </a>
+    <a class="util" href="/chogflip">
+      <div class="pill">
+        <img src="assets/util-coinflip.webp" alt="coinflip">
+        <div class="ptxt">
+          <div class="plabel">COINFLIP</div>
+          <div class="pdesc">double or nothin</div>
+        </div>
+      </div>
+    </a>
+    <a class="util" href="/">
+      <div class="pill">
+        <img src="assets/util-whitelist.webp" alt="whitelist">
+        <div class="ptxt">
+          <div class="plabel">WHITELIST</div>
+          <div class="pdesc">gated giveaway access for chog genesis holders</div>
+        </div>
+      </div>
+    </a>
+  </div>
+</main>
+
+<footer id="siteFooter">
+  <div class="fline1">vibecoded by <a href="https://x.com/bocilelv" target="_blank" rel="noopener">@bocilelv</a></div>
+  <div class="fline2">choguniverse — a community build for the Chogathon</div>
+</footer>
+
+<script>
+// ---- parallax ala chog.xyz: hero art ngikutin mouse dikit (lerp biar halus) ----
+(() => {
+  const art = document.getElementById('heroart');
+  let tx = 0, ty = 0, cx = 0, cy = 0;
+  addEventListener('mousemove', e => {
+    tx = (e.clientX / innerWidth - 0.5) * 18;   // max ±9px
+    ty = (e.clientY / innerHeight - 0.5) * 14;  // max ±7px
+  });
+  (function frame() {
+    cx += (tx - cx) * 0.06;  // lerp — lembut, ga patah
+    cy += (ty - cy) * 0.06;
+    art.style.transform = 'translate(' + cx.toFixed(2) + 'px,' + cy.toFixed(2) + 'px)';
+    requestAnimationFrame(frame);
+  })();
+})();
+
+document.getElementById('xdd').addEventListener('click', e => {
+  if (e.target.closest('.dd-item')) return;
+  document.getElementById('xdd').classList.toggle('open');
+});
+document.addEventListener('click', e => {
+  if (!e.target.closest('#xdd')) document.getElementById('xdd').classList.remove('open');
+});
+</script>
+</body>
+</html>
