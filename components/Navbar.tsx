@@ -29,6 +29,10 @@ export function Navbar() {
               {l.label}
             </a>
           ))}
+          <a href="/collab"
+            className="ml-2 font-black text-sm bg-white border-2 border-ink rounded-xl px-4 py-2 shadow-[3px_3px_0_ink] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none hover:bg-gold transition-colors">
+            🤝 REQUEST COLLAB
+          </a>
           {status === 'loading' ? null : session ? (
             <div className="flex items-center gap-2 ml-2 pl-3 border-l-2 border-ink/15">
               <a href="/profile" className="flex items-center gap-2">

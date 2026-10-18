@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import { EnterButton } from './EnterButton'
+import { ReqCheck } from './ReqCheck'
 
 export const dynamic = 'force-dynamic'
 
@@ -66,24 +67,16 @@ export default async function RaffleDetail({ params }: { params: { id: string } 
             <div className="font-black text-[10px] text-ink/50 uppercase mb-2">Requirements</div>
             <div className="space-y-2">
               {follows.map((h) => (
-                <div key={h} className="flex items-center gap-2 font-bold text-sm">
-                  <span className="text-green-600">✅</span> Follow <a href={`https://x.com/${h}`} target="_blank" rel="noopener" className="text-pink underline">@{h}</a> on X
-                </div>
+                <ReqCheck key={h} href={`https://x.com/${h}`} label={<>Follow <b className="text-pink">@{h}</b> on X</>} />
               ))}
               {discords.map((d, i) => (
-                <div key={d} className="flex items-center gap-2 font-bold text-sm">
-                  <span className="text-green-600">✅</span> Join <a href={d || "#"} target="_blank" rel="noopener" className="text-pink underline">Discord server {i + 1}</a>
-                </div>
+                <ReqCheck key={d || i} href={d || "#"} label={<>Join <b className="text-pink">Discord server {i + 1}</b></>} />
               ))}
               {r.likePostUrl && (
-                <div className="flex items-center gap-2 font-bold text-sm">
-                  <span className="text-green-600">✅</span> <a href={r.likePostUrl} target="_blank" rel="noopener" className="text-pink underline">Like this post</a>
-                </div>
+                <ReqCheck href={r.likePostUrl} label={<b className="text-pink">Like this post</b>} />
               )}
               {r.rtPostUrl && (
-                <div className="flex items-center gap-2 font-bold text-sm">
-                  <span className="text-green-600">✅</span> <a href={r.rtPostUrl} target="_blank" rel="noopener" className="text-pink underline">RT this post</a>
-                </div>
+                <ReqCheck href={r.rtPostUrl} label={<b className="text-pink">RT this post</b>} />
               )}
             </div>
             <p className="mt-2 text-[11px] font-bold text-ink/40">requirements are verified when you enter — mock mode: auto-pass</p>
