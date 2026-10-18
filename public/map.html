@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Choguniverse — World Map</title>
+  <link rel="icon" type="image/webp" href="assets/logo.webp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Koulen&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cream:#EFE6CE; --cream2:#F7F0DD; --ink:#2B2118; --ink-soft:#5C4F3F;
+      --pink:#EC2F7A; --pink-dark:#C41F62; --navy:#1B2B4B; --navy-deep:#13203A;
+      --gold:#F2C14E; --purple:#7B5FC7;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:var(--cream); color:var(--ink); font-family:'Nunito',sans-serif; overflow:hidden; }
+    h1,h2,h3,.koulen { font-family:'Koulen',sans-serif; font-weight:400; }
+
+    /* ===== TOP BAR ===== */
+    .top { position:fixed; top:0; left:0; right:0; z-index:50; display:flex; align-items:center;
+      justify-content:space-between; padding:10px 18px; background:rgba(239,230,206,.95);
+      border-bottom:3px solid var(--ink); backdrop-filter:blur(8px); }
+    .brand { display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--ink); }
+    .brand img { width:38px; height:38px; border-radius:10px; border:2.5px solid var(--ink); }
+    .brand .t1 { font-family:'Koulen'; font-size:20px; line-height:1; }
+    .brand .t2 { font-size:9px; font-weight:900; color:var(--pink); letter-spacing:1.5px; }
+    .topmid { font-family:'Koulen'; font-size:16px; color:var(--ink-soft); }
+    .topmid b { color:var(--pink); }
+    .topright { display:flex; gap:10px; align-items:center; }
+    .btn { font-family:'Koulen'; font-size:16px; border:2.5px solid var(--ink); border-radius:12px;
+      padding:8px 18px; cursor:pointer; text-decoration:none; display:inline-block; transition:.12s; }
+    .btn-pink { background:var(--pink); color:#fff; box-shadow:3px 3px 0 var(--ink); }
+    .btn-pink:hover { transform:translate(-1px,-1px); box-shadow:4px 4px 0 var(--ink); }
+    .btn-pink:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+    .btn-ghost { background:var(--cream2); color:var(--ink); box-shadow:3px 3px 0 var(--ink); }
+    .btn-ghost:hover { transform:translate(-1px,-1px); box-shadow:4px 4px 0 var(--ink); }
+    .wchip { display:none; align-items:center; gap:8px; background:var(--cream2); border:2.5px solid var(--ink);
+      border-radius:12px; padding:7px 14px; font-weight:900; font-size:13px; }
+    .wchip .dot { width:9px; height:9px; border-radius:50%; background:#3CC96A; }
+
+    /* ===== LAYOUT ===== */
+    .stage { position:fixed; inset:57px 0 0 0; display:flex; }
+    .mapside { flex:1; position:relative; overflow:hidden; background:var(--cream); cursor:grab; }
+    .mapside:active { cursor:grabbing; }
+
+    /* ===== MAP ===== */
+    .viewport { position:absolute; width:100%; height:100%; }
+    .mapworld { position:absolute; top:50%; left:50%; transform-origin:0 0; }
+    .mapworld svg { display:block; }
+    .mapworld svg path { fill:#E8DCBB; stroke:#A2916A; stroke-width:.6; }
+    .mapworld svg path.sel { fill:var(--pink); }
+    .mapworld svg path.occupied { fill:#F5EBD0; }
+
+    /* pins layer — anak dari .mapworld biara ikut zoom/pan */
+    .pins { position:absolute; left:0; top:0; }
+    .pin { position:absolute; transform:translate(-50%,-100%); cursor:pointer; z-index:5;
+      transition:transform .15s; }
+    .pin img { width:34px; height:38px; filter:drop-shadow(0 3px 4px rgba(43,33,24,.35)); }
+    .pin:hover { transform:translate(-50%,-100%) scale(1.25); z-index:9; }
+    .pin.mine img { outline:2px solid var(--gold); outline-offset:-2px; border-radius:50%; }
+    .pin .cnt { position:absolute; top:-7px; right:-9px; background:var(--navy); color:var(--gold);
+      font-family:'Koulen'; font-size:12px; border:2px solid var(--ink); border-radius:99px;
+      min-width:20px; text-align:center; padding:0 4px; line-height:1.3; }
+    /* marker preview spot yang belum di-plant */
+    #spotmark { position:absolute; transform:translate(-50%,-100%); pointer-events:none; z-index:4; }
+    #spotmark img { width:34px; height:38px; }
+
+    /* pin popup */
+    .popup { position:absolute; z-index:60; background:var(--cream2); border:3px solid var(--ink);
+      border-radius:14px; padding:12px 14px; box-shadow:5px 5px 0 rgba(43,33,24,.4);
+      min-width:190px; display:none; font-size:13px; }
+    .popup.show { display:block; }
+    .popup .pt { font-family:'Koulen'; font-size:17px; margin-bottom:4px; }
+    .popup .row { font-weight:700; color:var(--ink-soft); margin:2px 0; }
+    .popup .row b { color:var(--ink); }
+    .popup a.xlink { display:block; margin-top:8px; font-family:'Koulen'; font-size:15px;
+      background:var(--navy); color:var(--gold); padding:8px 14px; border-radius:99px;
+      text-decoration:none; text-align:center; border:2.5px solid var(--ink);
+      box-shadow:3px 3px 0 rgba(43,33,24,.35); }
+    .popup a.xlink:hover { transform:translate(-1px,-1px); box-shadow:4px 4px 0 rgba(43,33,24,.4); }
+
+    /* ===== SIDEBAR ===== */
+    .side { width:330px; flex-shrink:0; background:var(--cream2); border-left:3px solid var(--ink);
+      overflow-y:auto; padding:18px 16px 30px; }
+    .card { background:#fff; border:3px solid var(--ink); border-radius:16px; padding:16px;
+      box-shadow:4px 4px 0 rgba(43,33,24,.25); margin-bottom:16px; }
+    .card h3 { font-size:18px; text-transform:uppercase; margin-bottom:10px; }
+    .card h3 span { color:var(--pink); }
+    .muted { color:var(--ink-soft); font-weight:700; font-size:13.5px; }
+    .countrypick { font-family:'Koulen'; font-size:20px; color:var(--pink); min-height:26px; }
+    .xrow { display:flex; gap:8px; margin-top:10px; }
+    .xrow input { flex:1; border:2.5px solid var(--ink); border-radius:10px; padding:8px 12px;
+      font-family:'Nunito'; font-weight:700; font-size:14px; background:var(--cream2); }
+    .choglist { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+    .chogchip { display:flex; align-items:center; gap:6px; border:2.5px solid var(--ink);
+      border-radius:99px; padding:4px 12px 4px 5px; background:var(--cream2); cursor:pointer;
+      font-weight:900; font-size:13px; }
+    .chogchip img { width:28px; height:28px; border-radius:50%; border:2px solid var(--ink); }
+    .chogchip.sel { background:var(--gold); }
+    .chogchip.armed-chip { box-shadow:0 0 0 3px var(--pink); animation:armedpulse 1.2s infinite; }
+    @keyframes armedpulse { 0%,100% { box-shadow:0 0 0 3px var(--pink); } 50% { box-shadow:0 0 0 6px rgba(236,47,122,.35); } }
+    body.armed .mapside { cursor:crosshair; }
+    .chogchip .rk { color:var(--pink); }
+    .feed { max-height:300px; overflow-y:auto; }
+    .frow { display:flex; align-items:center; gap:9px; padding:8px 6px; border-radius:10px; font-size:13px; font-weight:700; }
+    .frow:nth-child(odd) { background:var(--cream2); }
+    .frow img { width:26px; height:26px; border-radius:50%; border:2px solid var(--gold); }
+    .frow .who { color:var(--pink-dark); }
+    .frow .price { margin-left:auto; font-family:'Koulen'; font-size:14px; }
+    .frow .rank { background:var(--pink); color:#fff; border-radius:99px; padding:1px 8px; font-family:'Koulen'; font-size:12px; }
+    .frow .chaintag { margin-left:auto; font-family:'Koulen'; font-size:10.5px; padding:1px 7px; border-radius:99px; letter-spacing:.5px; }
+    .frow .chaintag.testnet { background:var(--cream); color:var(--ink-soft); border:1.5px solid var(--ink-soft); }
+    .frow .chaintag.mainnet { background:var(--navy); color:var(--gold); border:1.5px solid var(--ink); }
+    .frow .who.mn { color:var(--purple); }
+    .frow .price + .chaintag { margin-left:6px; }
+    .empty { color:var(--ink-soft); text-align:center; padding:14px; font-weight:700; font-size:13px; }
+
+    .toast { position:fixed; bottom:22px; left:50%; transform:translateX(-50%); background:var(--navy);
+      color:#fff; font-weight:900; padding:12px 24px; border-radius:14px; border:3px solid var(--ink);
+      z-index:200; display:none; font-size:14px; box-shadow:5px 5px 0 rgba(0,0,0,.3); max-width:90vw; }
+
+    .zoomctl { position:absolute; bottom:18px; left:18px; z-index:40; display:flex; flex-direction:column; gap:8px; }
+    .zbtn { width:40px; height:40px; border-radius:12px; border:2.5px solid var(--ink); background:var(--cream2);
+      font-family:'Koulen'; font-size:22px; cursor:pointer; box-shadow:3px 3px 0 var(--ink); }
+    .zbtn:active { transform:translate(1px,1px); box-shadow:2px 2px 0 var(--ink); }
+    .hint { position:absolute; bottom:18px; left:50%; transform:translateX(-50%); z-index:40;
+      background:rgba(43,33,24,.85); color:var(--cream); font-weight:700; font-size:12.5px;
+      padding:7px 16px; border-radius:99px; pointer-events:none; }
+
+    @media (max-width:860px) {
+      .stage { flex-direction:column; }
+      .side { width:100%; border-left:none; border-top:3px solid var(--ink); max-height:42vh; }
+      .topmid { display:none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="top">
+  <a class="brand" href="/">
+    <img src="assets/logo.webp" alt="chog">
+    <span><span class="t1">CHOGUNIVERSE</span><br><span class="t2">WORLD MAP</span></span>
+  </a>
+  <div class="topmid">drag to pan · scroll to zoom · <b>tap your chog, then click the map to plant</b> · pins link to X</div>
+  <div class="topright">
+    <div class="wchip" id="wchip"><span class="dot"></span><span id="waddr"></span></div>
+    <button class="btn btn-pink" id="connectBtn">CONNECT WALLET</button>
+  </div>
+</div>
+
+<div class="stage">
+  <div class="mapside" id="mapside">
+    <div class="viewport" id="viewport">
+      <div class="mapworld" id="mapworld">
+        <div class="pins" id="pins"></div>
+        <div class="popup" id="popup"></div>
+      </div>
+    </div>
+    <div class="zoomctl">
+      <button class="zbtn" id="zin">+</button>
+      <button class="zbtn" id="zout">−</button>
+    </div>
+    <div class="hint" id="hint">loading the world…</div>
+  </div>
+
+  <div class="side">
+    <!-- YOUR CHOG -->
+    <div class="card">
+      <h3>YOUR <span>CHOGS</span></h3>
+      <div id="chogzone"><p class="muted">connect your wallet to see your chogs</p></div>
+    </div>
+
+    <!-- PLANT PIN -->
+    <div class="card">
+      <h3>PLANT A <span>PIN</span></h3>
+      <div class="countrypick" id="pick">tap a chog, then click the map</div>
+      <p class="muted" id="picksub">your pin lands exactly where you click</p>
+      <button class="btn btn-pink" id="claimBtn" style="width:100%;margin-top:10px;" disabled>PLANT PIN 📍</button>
+    </div>
+
+    <!-- X PROFILE -->
+    <div class="card">
+      <h3>PIN YOUR <span>X</span></h3>
+      <p class="muted">your pins link to your X profile</p>
+      <div class="xrow">
+        <input id="xinput" placeholder="handle (no @)" maxlength="32">
+        <button class="btn btn-ghost" id="xbtn">SET</button>
+      </div>
+    </div>
+
+    <!-- LIVE -->
+    <div class="card">
+      <h3>CHOGS ON THE <span>MOVE</span></h3>
+      <div class="feed" id="feed"><div class="empty">loading…</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="ethers.js"></script>
+<script>
+const RPC = 'https://rpc.testnet.chain.robinhood.com';
+const NFT = '0x9897d240f5241672A0455621bb7F3E8352A99Fc4';
+const WORLD = '0xF9dA211Dd63Ee9026655097CD2b4a6da2B281eB4';
+const NFT_ABI = [
+  'function mint()',
+  'function totalSupply() view returns (uint256)',
+  'function ownerOf(uint256) view returns (address)',
+  'function rank(uint256) view returns (uint16)',
+  'event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)',
+];
+const WORLD_ABI = [
+  'function claim(uint256 tokenId, int32 x, int32 y)',
+  'function setProfile(string handle)',
+  'function xHandle(address) view returns (string)',
+  'function pinView(uint256) view returns (int32 x, int32 y, address holder, string handle, uint16 rank)',
+  'function listing(uint256) view returns (address seller, uint256 price, bool active)',
+  'function list(uint256 tokenId, uint256 price)',
+  'function unlist(uint256 tokenId)',
+  'function buy(uint256 tokenId) payable',
+  'event Claimed(uint256 indexed tokenId, address indexed holder, int32 x, int32 y)',
+  'event ProfileSet(address indexed holder, string handle)',
+  'event Moved(uint256 indexed tokenId, address indexed holder, int32 fromX, int32 fromY, int32 toX, int32 toY)',
+  'event Sold(uint256 indexed tokenId, address indexed seller, address indexed buyer, uint256 price, uint16 rank)',
+  'event Listed(uint256 indexed tokenId, address indexed seller, uint256 price)',
+  'event Unlisted(uint256 indexed tokenId, address indexed seller)',
+];
+
+const $ = id => document.getElementById(id);
+const short = a => a.slice(0, 6) + '…' + a.slice(-4);
+const prov = new ethers.providers.JsonRpcProvider(RPC);
+const nftRO = new ethers.Contract(NFT, NFT_ABI, prov);
+const worldRO = new ethers.Contract(WORLD, WORLD_ABI, prov);
+const ifaceW = new ethers.utils.Interface(WORLD_ABI);
+const ifaceN = new ethers.utils.Interface(NFT_ABI);
+
+const state = { account: null, selCountry: null, selToken: null, pins: {}, owners: {}, ranks: {}, handles: {} };
+let armed = false; // chog terpilih & siap tanam — klik map = langsung plant/move
+
+function renderArmed() {
+  document.body.classList.toggle('armed', armed);
+}
+const iso2num = {}, num2info = {}; // diisi setelah fetch iso2.json + countries.json
+
+function toast(m) { const t = $('toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = 'none', 3200); }
+
+// ---------- map load + pan/zoom ----------
+let VB = { x: 30.767, y: 241.591, w: 784.077, h: 458.627 };
+let scale = 1, panX = 0, panY = 0;
+
+async function loadMap() {
+  const [svgTxt, iso2, countries] = await Promise.all([
+    fetch('world.svg').then(r => r.text()),
+    fetch('iso2.json').then(r => r.json()),
+    fetch('countries.json').then(r => r.json()),
+  ]);
+  for (const [a2, num] of Object.entries(iso2)) { iso2num[a2] = num; num2info[num] = countries[num] || null; }
+  const m = svgTxt.match(/viewBox="([^"]+)"/);
+  if (m) { const p = m[1].split(/\s+/).map(Number); VB = { x: p[0], y: p[1], w: p[2], h: p[3] }; }
+  // inject svg tanpa doctype/xml
+  const body = svgTxt.replace(/^[\s\S]*?<svg/, '<svg').replace(/<\/svg>[\s\S]*$/, '</svg>');
+  const holder = $('mapworld');
+  holder.insertAdjacentHTML('afterbegin', body);
+  const svg = holder.querySelector('svg');
+  svg.removeAttribute('width'); svg.removeAttribute('height');
+  svg.setAttribute('viewBox', `${VB.x} ${VB.y} ${VB.w} ${VB.h}`);
+  // set ukuran awal
+  fitMap();
+  // click handlers — negara ga perlu di-select lagi; klik map = pilih spot (global listener)
+  svg.querySelectorAll('path').forEach(p => {
+    p.addEventListener('click', (ev) => { /* biarkan bubble ke mapside handler */ });
+  });
+  $('hint').textContent = 'drag to pan · scroll to zoom · tap your chog, then click the map to plant';
+  setTimeout(() => $('hint').style.display = 'none', 6000);
+  renderPins();
+}
+
+function fitMap() {
+  const side = $('mapside').getBoundingClientRect();
+  const s = Math.max(side.width / VB.w, side.height / VB.h) * 0.9;
+  scale = s;
+  applyTransform();
+}
+
+function applyTransform() {
+  // mapworld origin sudah di tengah (top:50% left:50%), tinggal pan + scale
+  // translate3d = GPU-accelerated biar drag ga lag
+  $('mapworld').style.transform = `translate3d(${panX}px, ${panY}px, 0) scale(${scale})`;
+  const svg = $('mapworld').querySelector('svg');
+  if (svg) {
+    svg.style.width = VB.w + 'px'; svg.style.height = VB.h + 'px';
+    svg.style.position = 'absolute';
+    svg.style.left = (-VB.w/2) + 'px'; svg.style.top = (-VB.h/2) + 'px';
+    svg.style.transform = 'scale(1)';
+  }
+  const pins = $('pins');
+  pins.style.width = VB.w + 'px'; pins.style.height = VB.h + 'px';
+  pins.style.left = (-VB.w/2) + 'px'; pins.style.top = (-VB.h/2) + 'px';
+}
+
+// ---------- pan (drag) & zoom (wheel/pinch) — POINTER EVENTS: mouse + touch + limit ----------
+(() => {
+  const side = $('mapside');
+  const MIN_SCALE = () => { const r = side.getBoundingClientRect(); return Math.max(r.width / VB.w, r.height / VB.h) * 0.85; };
+  const MAX_SCALE = 6;
+  const pointers = new Map(); // pointerId -> {x, y}
+  let pinchDist = 0;
+
+  function clampPan() {
+    const r = side.getBoundingClientRect();
+    const maxX = (VB.w * scale - r.width) / 2 + 60;
+    const maxY = (VB.h * scale - r.height) / 2 + 60;
+    panX = Math.max(-maxX, Math.min(maxX, panX));
+    panY = Math.max(-maxY, Math.min(maxY, panY));
+  }
+
+  side.addEventListener('pointerdown', e => {
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    side.setPointerCapture(e.pointerId);
+    side.style.cursor = 'grabbing';
+    if (pointers.size === 2) {
+      const [a, b] = [...pointers.values()];
+      pinchDist = Math.hypot(a.x - b.x, a.y - b.y);
+    }
+  });
+  side.addEventListener('pointermove', e => {
+    if (!pointers.has(e.pointerId)) return;
+    const prev = pointers.get(e.pointerId);
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    if (pointers.size === 1) {
+      // pan 1 jari / mouse
+      panX += e.clientX - prev.x; panY += e.clientY - prev.y;
+      clampPan(); applyTransform();
+    } else if (pointers.size === 2) {
+      // pinch zoom 2 jari
+      const [a, b] = [...pointers.values()];
+      const d = Math.hypot(a.x - b.x, a.y - b.y);
+      if (pinchDist > 0 && d > 0) {
+        const f = d / pinchDist;
+        const ns = Math.min(MAX_SCALE, Math.max(MIN_SCALE(), scale * f));
+        const r = side.getBoundingClientRect();
+        const cx = (a.x + b.x) / 2 - r.left - r.width/2 - panX;
+        const cy = (a.y + b.y) / 2 - r.top - r.height/2 - panY;
+        panX += cx * (1 - ns/scale); panY += cy * (1 - ns/scale);
+        scale = ns; pinchDist = d;
+        clampPan(); applyTransform();
+      }
+    }
+  });
+  const lift = e => {
+    pointers.delete(e.pointerId);
+    if (pointers.size < 2) pinchDist = 0;
+    if (!pointers.size) side.style.cursor = 'grab';
+  };
+  side.addEventListener('pointerup', lift);
+  side.addEventListener('pointercancel', lift);
+  // cegah browser scroll/zoom halaman pas interaksi map
+  side.style.touchAction = 'none';
+
+  // klik vs drag: hanya anggap klik kalau gerak < 6px (pointerdown/up posisi)
+  let downPos = null;
+  side.addEventListener('pointerdown', e => { downPos = { x: e.clientX, y: e.clientY }; });
+  side.addEventListener('click', e => {
+    if (downPos && Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) > 6) return; // itu drag, bukan klik
+    if (e.target.closest('.pin') || e.target.closest('.popup') || e.target.closest('.zbtn')) return;
+    const r = side.getBoundingClientRect();
+    const px = e.clientX - r.left - r.width/2 - panX;
+    const py = e.clientY - r.top - r.height/2 - panY;
+    // ke koordinat VIEWBOX (dengan origin VB.x/VB.y — ini yang kemarin kelupaan,
+    // bikin pin mendarat 240px dari titik klik!)
+    const vx = px / scale + VB.w/2 + VB.x;
+    const vy = py / scale + VB.h/2 + VB.y;
+    if (vx < VB.x || vx > VB.x + VB.w || vy < VB.y || vy > VB.y + VB.h) return; // di luar map
+
+    // ARMING MODE: kalau user udah tap chog-nya (armed), klik map = langsung tanam/pindah pin.
+    // Kalau belum, klik map cuma nunjukin spot (ga nuding terus) — milih chog dulu di sidebar.
+    if (armed) {
+      doPlant(vx, vy);
+    } else if (!state.account || !state.selToken) {
+      // belum siap tanam: klik map = browsing biasa, cuma kasi hint sekali
+      toast(state.account ? 'tap one of your chogs first, then click the map' : 'connect your wallet, then tap one of your chogs');
+    } else {
+      // ada chog tapi belum armed (belom tap chip): hint singkat
+      toast('tap the chog you want to plant, then click the map');
+    }
+  });
+
+  side.addEventListener('wheel', e => {
+    e.preventDefault();
+    const f = e.deltaY < 0 ? 1.15 : 0.87;
+    const ns = Math.min(MAX_SCALE, Math.max(MIN_SCALE(), scale * f));
+    const r = side.getBoundingClientRect();
+    const mx = e.clientX - r.left - r.width/2 - panX;
+    const my = e.clientY - r.top - r.height/2 - panY;
+    panX += mx * (1 - ns/scale); panY += my * (1 - ns/scale);
+    scale = ns; clampPan(); applyTransform();
+  }, { passive: false });
+  $('zin').onclick = () => { scale = Math.min(MAX_SCALE, scale * 1.3); clampPan(); applyTransform(); };
+  $('zout').onclick = () => { scale = Math.max(MIN_SCALE(), scale / 1.3); clampPan(); applyTransform(); };
+  addEventListener('resize', () => { fitMap(); });
+})();
+
+// ---------- spot select (klik map = titik pin, bebas) ----------
+let selSpot = null; // {x, y} koordinat viewBox
+
+function selectSpot(viewX, viewY) {
+  selSpot = { x: Math.round(viewX), y: Math.round(viewY) };
+  $('pick').textContent = 'spot selected!';
+  $('pick').textContent = 'spot selected!';
+  $('picksub').textContent = `now tap ${state.selToken ? 'PLANT / MOVE PIN or click the map again' : 'one of your chogs above'}`
+  renderSpotMarker(); // langsung tampilin ghost pin di titik klik
+  updateClaimBtn();
+}
+
+// marker preview spot kepilh (koordinat viewBox, sama dgn pin)
+function renderSpotMarker() {
+  let m = document.getElementById('spotmark');
+  if (!selSpot) { if (m) m.remove(); return; }
+  if (!m) { m = document.createElement('div'); m.id = 'spotmark'; $('pins').appendChild(m); }
+  m.style.left = (selSpot.x - VB.x) + 'px'; m.style.top = (selSpot.y - VB.y) + 'px';
+  m.innerHTML = '<img src="assets/pin.webp" style="opacity:.55">';
+}
+
+// ambil semua X handle dari event ProfileSet
+async function refreshHandles() {
+  try {
+    const cur = await prov.getBlockNumber();
+    const from = Math.max(0, cur - 2500000);
+    const logs = await prov.getLogs({ address: WORLD, fromBlock: from, topics: [ethers.utils.id('ProfileSet(address,string)')] });
+    for (const lg of logs) {
+      const e = ifaceW.parseLog(lg).args;
+      state.handles[e.holder.toLowerCase()] = e.handle;
+    }
+  } catch (e) {}
+}
+
+// ---------- chain state ----------
+function countIn(num) { return Object.values(state.pins).filter(p => p.country === num).length; }
+
+async function refreshState() {
+  try {
+    const cur = await prov.getBlockNumber();
+    const from = Math.max(0, cur - 2500000); // RH block speed tinggi — window luas biar pin ga hilang
+    const [cLogs, mLogs, sLogs, tLogs] = await Promise.all([
+      prov.getLogs({ address: WORLD, fromBlock: from, topics: [ethers.utils.id('Claimed(uint256,address,int32,int32)')] }),
+      prov.getLogs({ address: WORLD, fromBlock: from, topics: [ethers.utils.id('Moved(uint256,address,int32,int32,int32,int32)')] }),
+      prov.getLogs({ address: WORLD, fromBlock: from, topics: [ethers.utils.id('Sold(uint256,address,address,uint256,uint16)')] }),
+      prov.getLogs({ address: NFT, fromBlock: from, topics: [ethers.utils.id('Transfer(address,address,uint256)')] }),
+    ]);
+    // ownership dari NFT transfers
+    for (const lg of tLogs) {
+      const e = ifaceN.parseLog(lg).args;
+      state.owners[e.tokenId.toString()] = e.to.toLowerCase();
+    }
+    // pins dari world events (koordinat viewBox)
+    for (const lg of cLogs) {
+      const e = ifaceW.parseLog(lg).args;
+      state.pins[e.tokenId.toString()] = { x: Number(e.x), y: Number(e.y), holder: e.holder.toLowerCase() };
+    }
+    for (const lg of mLogs) {
+      const e = ifaceW.parseLog(lg).args;
+      state.pins[e.tokenId.toString()] = { x: Number(e.toX), y: Number(e.toY), holder: e.holder.toLowerCase() };
+    }
+    for (const lg of sLogs) {
+      const e = ifaceW.parseLog(lg).args;
+      const p = state.pins[e.tokenId.toString()] || { x: null, y: null };
+      state.pins[e.tokenId.toString()] = { x: p.x, y: p.y, holder: e.buyer.toLowerCase() };
+      state.ranks[e.tokenId.toString()] = e.rank;
+    }
+    renderPins();
+    renderMyChogs();
+  } catch (e) { console.warn('refreshState', e.message); }
+}
+// snapshot buat deteksi perubahan — render ulang CUMA kalau data beda (hemat CPU, drag lancar)
+let _pinSnapshot = '';
+async function refreshIfChanged() {
+  try {
+    const cur = await prov.getBlockNumber();
+    const from = Math.max(0, cur - 2500000);
+    const [cLogs, mLogs, sLogs] = await Promise.all([
+      prov.getLogs({ address: WORLD, fromBlock: from, toBlock: cur, topics: [ethers.utils.id('Claimed(uint256,address,int32,int32)')] }),
+      prov.getLogs({ address: WORLD, fromBlock: from, toBlock: cur, topics: [ethers.utils.id('Moved(uint256,address,int32,int32,int32,int32)')] }),
+      prov.getLogs({ address: WORLD, fromBlock: from, toBlock: cur, topics: [ethers.utils.id('Sold(uint256,address,address,uint256,uint16)')] }),
+    ]);
+    const snap = JSON.stringify([cLogs.length, mLogs.length, sLogs.length]);
+    if (snap !== _pinSnapshot) {
+      _pinSnapshot = snap;
+      await refreshState();
+      refreshFeed();
+    }
+  } catch (e) {}
+}
+
+// ---------- pins render (koordinat on-chain -> pixel) ----------
+async function renderPins() {
+  const svg = $('mapworld').querySelector('svg');
+  if (!svg) return;
+  const wrap = $('pins');
+  wrap.innerHTML = '';
+  const myAddr = (state.account || '').toLowerCase();
+  for (const [tid, p] of Object.entries(state.pins)) {
+    if (p.x == null) continue;
+    const d = document.createElement('div');
+    d.className = 'pin' + (p.holder === myAddr ? ' mine' : '');
+    d.style.left = (p.x - VB.x) + 'px'; d.style.top = (p.y - VB.y) + 'px';
+    d.innerHTML = `<img src="assets/pin.webp">`;
+    d.title = state.handles[p.holder] ? 'go to @' + state.handles[p.holder] : 'chog pin';
+    d.onclick = (ev) => {
+        ev.stopPropagation();
+        const handle = state.handles[p.holder];
+        if (handle) {
+          // pin = hyperlink langsung ke X pemiliknya
+          window.open('https://x.com/' + handle, '_blank', 'noopener');
+        } else {
+          showPopup(ev, tid, p);
+        }
+      };
+      d.onmouseenter = (ev) => { clearTimeout(hideTimer); showPopup(ev, tid, p, true); };
+      d.onmouseleave = () => scheduleHide();
+    wrap.appendChild(d);
+  }
+  renderSpotMarker();
+}
+
+// popup hide scheduler: kasih waktu 450ms biar mouse sempat pindah ke popup
+let hoverKeep = false;
+let hideTimer = null;
+function scheduleHide() {
+  clearTimeout(hideTimer);
+  hideTimer = setTimeout(() => {
+    if (!hoverKeep) $('popup').classList.remove('show');
+  }, 450);
+}
+
+// popup: chog # + rank + @username (link ke X) / address fallback.
+// hoverMode=true -> popup kecil preview (klik pin langsung buka X).
+function showPopup(ev, tid, p, hoverMode) {
+  const pop = $('popup');
+  const rank = state.ranks[tid] || '—';
+  const handle = state.handles && state.handles[p.holder];
+  if (hoverMode && handle) {
+    pop.innerHTML = `<div class="pt">CHOG #${tid} <span style="color:var(--purple)">· rank ${rank}</span></div>
+      <a class="xlink" href="https://x.com/${handle}" target="_blank" rel="noopener">GO TO @${handle} ON X ↗</a>`;
+  } else {
+    pop.innerHTML = `<div class="pt">CHOG #${tid} <span style="color:var(--purple)">· rank ${rank}</span></div>
+      <div class="row">holder <b>${short(p.holder)}</b></div>
+      ${handle
+        ? `<a class="xlink" href="https://x.com/${handle}" target="_blank" rel="noopener">GO TO @${handle} ON X ↗</a>`
+        : `<a class="xlink" href="https://explorer.testnet.chain.robinhood.com/address/${p.holder}" target="_blank" rel="noopener">VIEW ${short(p.holder)} ↗</a>`}`;
+  }
+  pop.classList.add('show');
+  // popup NEMPIL di samping pin
+  const pinEl = ev.currentTarget;
+  const pinRect = pinEl.getBoundingClientRect();
+  pop.style.position = 'fixed';
+  pop.style.left = Math.min(pinRect.right + 10, window.innerWidth - 220) + 'px';
+  pop.style.top = Math.max(66, Math.min(pinRect.top - 20, window.innerHeight - 160)) + 'px';
+}
+document.addEventListener('click', e => {
+  const pop = $('popup');
+  if (!pop.contains(e.target) && !e.target.closest('.pin')) pop.classList.remove('show');
+});
+// popup bisa di-hover & diklik tanpa ilang
+(() => {
+  const pop = $('popup');
+  pop.addEventListener('mouseenter', () => { hoverKeep = true; clearTimeout(hideTimer); });
+  pop.addEventListener('mouseleave', () => { hoverKeep = false; scheduleHide(); });
+})();
+
+// pindahkan popup KE BODY (bukan di dalam .mapworld yang ber-transform —
+// position:fixed di dalam elemen ber-transform malah ikut transform, popup kelempar jauh)
+document.body.appendChild($('popup'));
+
+// ---------- my chogs ----------
+function renderMyChogs() {
+  const z = $('chogzone');
+  if (!state.account) { z.innerHTML = '<p class="muted">connect your wallet to see your chogs</p>'; return; }
+  const mine = Object.entries(state.owners).filter(([tid, o]) => o === state.account.toLowerCase());
+  if (!mine.length) {
+    z.innerHTML = `<p class="muted">no chogs yet — mint your passport to the map</p>
+      <button class="btn btn-pink" id="mintBtn" style="width:100%;margin-top:10px;">MINT A CHOG 🐴</button>`;
+    $('mintBtn').onclick = mintChog;
+    updateClaimBtn();
+    return;
+  }
+  let html = '<div class="choglist">';
+  mine.forEach(([tid]) => {
+    const pinned = state.pins[tid];
+    html += `<div class="chogchip ${state.selToken == tid ? 'sel' : ''}" data-tid="${tid}">
+      <img src="assets/chog-portrait.webp">#${tid}${pinned ? ' · 📍 move' : ''}</div>`;
+  });
+  html += '</div><p class="muted" style="margin-top:8px">tap a chog, then click the map — clicking a new spot moves its pin</p>';
+  z.innerHTML = html;
+  if (!state.selToken || !mine.some(([tid]) => tid == state.selToken)) {
+    const free = mine.find(([tid]) => !state.pins[tid]);
+    state.selToken = free ? free[0] : mine[0][0];
+  }
+  z.querySelectorAll('.chogchip').forEach(ch => {
+    ch.onclick = () => {
+      // tap chip yang sama = toggle armed on/off (opsi batalin)
+      if (armed && state.selToken == ch.dataset.tid) {
+        armed = false;
+        toast('Arming off — browse freely 🗺️');
+      } else {
+        armed = true;
+        toast('Now click the map to plant this chog 📍');
+      }
+      state.selToken = ch.dataset.tid;
+      renderMyChogs(); updateClaimBtn();
+    };
+  });
+  // default select first unpinned
+  z.querySelectorAll('.chogchip').forEach(ch => {
+    ch.classList.toggle('sel', ch.dataset.tid == state.selToken);
+    ch.classList.toggle('armed-chip', armed && ch.dataset.tid == state.selToken);
+  });
+  renderArmed();
+  updateClaimBtn();
+}
+
+function updateClaimBtn() {
+  const b = $('claimBtn');
+  const hasChog = state.account && Object.values(state.owners).some(o => o === state.account.toLowerCase());
+  const moving = state.selToken && state.pins[state.selToken];
+  b.disabled = !(selSpot && hasChog);
+  if (!hasChog) { b.textContent = selSpot ? 'MINT A CHOG FIRST' : 'CLICK ANYWHERE ON THE MAP'; return; }
+  b.textContent = !selSpot ? 'CLICK ANYWHERE ON THE MAP' : (moving ? 'MOVE PIN 📍' : 'PLANT PIN 📍');
+}
+
+async function mintChog() {
+  try {
+    toast('Please confirm in your wallet…');
+    const c = new ethers.Contract(NFT, NFT_ABI, signer);
+    const tx = await c.mint({ ...GP });
+    await tx.wait();
+    toast('Chog minted! 🐴');
+    await refreshState();
+  } catch (e) { toast('Failed: ' + (e.data?.message || e.message).slice(0, 60)); }
+}
+
+async function doPlant(vx, vy) {
+  if (!signer) { toast('Please connect your wallet first'); return; }
+  if (!state.selToken) { toast('Tap one of your chogs first'); return; }
+  const x = Math.round(vx), y = Math.round(vy);
+  try {
+    armed = false;
+    const moving = !!state.pins[state.selToken];
+    toast(moving ? 'Moving your pin — confirm in your wallet…' : 'Please confirm in your wallet…');
+    const c = new ethers.Contract(WORLD, WORLD_ABI, signer);
+    const tx = await c.claim(state.selToken, x, y, { ...GP });
+    await tx.wait();
+    toast(moving ? 'Pin moved! 📍' : 'Pin planted! 📍');
+    selSpot = null;
+    renderArmed();
+    await refreshState();
+  } catch (e) {
+    toast('Failed: ' + (e.data?.message || e.message).slice(0, 60));
+  }
+}
+// tombol sidebar tetep bisa dipakai (kalau user milih spot dulu lewat tombol flow)
+$('claimBtn').onclick = async () => {
+  if (!selSpot || !state.selToken) return;
+  doPlant(selSpot.x, selSpot.y);
+};
+
+$('xbtn').onclick = async () => {
+  const h = $('xinput').value.trim().replace(/^@/, '');
+  if (!h) return toast('Type your X handle first');
+  try {
+    toast('Please confirm in your wallet…');
+    const c = new ethers.Contract(WORLD, WORLD_ABI, signer);
+    const tx = await c.setProfile(h, { ...GP });
+    await tx.wait();
+    toast('X profile pinned! 𝕏');
+  } catch (e) { toast('Failed: ' + (e.data?.message || e.message).slice(0, 60)); }
+};
+
+// ---------- feed (combo: testnet events + Monad mainnet via data server) ----------
+const DS = location.port === '8901' ? 'http://' + location.hostname + ':8902' : (location.hostname.includes('vercel') ? '/api/mapfeed' : '');
+async function refreshFeed() {
+  try {
+    // 1) testnet events — langsung dari chain (sumber utama)
+    const cur = await prov.getBlockNumber();
+    const from = Math.max(0, cur - 2500000);
+    const [cLogs, sLogs] = await Promise.all([
+      prov.getLogs({ address: WORLD, fromBlock: from, topics: [ethers.utils.id('Claimed(uint256,address,int32,int32)')] }),
+      prov.getLogs({ address: WORLD, fromBlock: from, topics: [ethers.utils.id('Sold(uint256,address,address,uint256,uint16)')] }),
+    ]);
+    const rows = [];
+    for (const lg of cLogs) {
+      const e = ifaceW.parseLog(lg).args;
+      rows.push({ b: lg.blockNumber, tag: 'TESTNET', h: `<img src="assets/pin.webp"><span class="who">chog #${e.tokenId}</span><span>planted a pin</span>` });
+    }
+    for (const lg of sLogs) {
+      const e = ifaceW.parseLog(lg).args;
+      rows.push({ b: lg.blockNumber, tag: 'TESTNET', h: `<img src="assets/chog-portrait.webp"><span class="who">${short(e.buyer)}</span><span>bought #${e.tokenId}</span><span class="price">${(+ethers.utils.formatEther(e.price)).toFixed(3)}</span><span class="rank">r${e.rank}</span>` });
+    }
+    // 2) Monad mainnet rows — dari data server
+    if (DS) {
+      try {
+        const r = await fetch(DS + '/api/feed').then(r => r.json());
+        for (const row of (r.rows || [])) {
+          if (row.chain !== 'mainnet') continue;
+          const who = row.who ? short(row.who) : '?';
+          rows.push({ b: row.block, tag: 'MAINNET', h: `<img src="assets/logo.webp"><span class="who mn">${who}</span><span>${row.what}</span>` });
+        }
+      } catch (e) {}
+    }
+    rows.sort((a, b) => b.b - a.b);
+    $('feed').innerHTML = rows.slice(0, 18).map(r => `<div class="frow">${r.h}<span class="chaintag ${r.tag.toLowerCase()}">${r.tag}</span></div>`).join('') || '<div class="empty">no moves yet 🐴</div>';
+  } catch (e) {}
+}
+
+// ---------- wallet ----------
+let signer = null;
+const GP = { maxFeePerGas: ethers.utils.parseUnits('0.05', 'gwei'), maxPriorityFeePerGas: ethers.utils.parseUnits('0.05', 'gwei') };
+
+async function connect() {
+  if (!window.ethereum) return toast('Please install MetaMask 🦊');
+  try {
+    const accs = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    state.account = accs[0];
+    try {
+      await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0xb626' }] });
+    } catch (e) {
+      await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [{
+        chainId: '0xb626', chainName: 'Robinhood Chain Testnet',
+        nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+        rpcUrls: [RPC], blockExplorerUrls: ['https://explorer.testnet.chain.robinhood.com'],
+      }]});
+    }
+    signer = new ethers.providers.Web3Provider(window.ethereum).getSigner();
+    // load X handle
+    try {
+      const h = await worldRO.xHandle(state.account);
+      if (h) $('xinput').value = h;
+    } catch (e) {}
+    $('connectBtn').style.display = 'none';
+    $('wchip').style.display = 'flex';
+    $('waddr').textContent = short(state.account);
+    toast('Wallet connected 🐴 — tap a chog when you want to plant');
+    armed = false;
+    await refreshState();
+  } catch (e) { toast('Connection failed — please try again'); }
+}
+$('connectBtn').onclick = connect;
+
+// boot
+loadMap().then(async () => { await refreshHandles(); refreshState(); refreshFeed(); });
+setInterval(() => { if (!document.hidden) refreshIfChanged(); }, 12000);
+// popup nutup pas map digeser/zoom (biar ga nyangkut jauh dari pin-nya)
+(() => {
+  const origApply = applyTransform;
+  applyTransform = function () { origApply(); $('popup').classList.remove('show'); };
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chogffle — Choguniverse Raffles</title>
+  <link rel="icon" type="image/webp" href="assets/logo.webp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Koulen&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cream:#EFE6CE; --cream2:#F7F0DD; --ink:#2B2118; --ink-soft:#5C4F3F;
+      --pink:#EC2F7A; --pink-dark:#C41F62; --navy:#1B2B4B; --gold:#F2C14E; --purple:#7B5FC7;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:var(--cream); color:var(--ink); font-family:'Nunito',sans-serif; min-height:100vh; }
+    h1,h2,h3,.koulen { font-family:'Koulen',sans-serif; font-weight:400; letter-spacing:.5px; }
+
+    .top { position:sticky; top:0; z-index:50; display:flex; align-items:center;
+      justify-content:space-between; padding:10px 18px; background:rgba(239,230,206,.96);
+      border-bottom:3px solid var(--ink); backdrop-filter:blur(8px); }
+    .brand { display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--ink); }
+    .brand img { width:38px; height:38px; border-radius:10px; border:2.5px solid var(--ink); }
+    .brand .t1 { font-family:'Koulen'; font-size:20px; line-height:1; }
+    .brand .t2 { font-size:9px; font-weight:900; color:var(--pink); letter-spacing:1.5px; }
+    .topright { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .btn { font-family:'Koulen'; font-size:15px; border:2.5px solid var(--ink); border-radius:12px;
+      padding:8px 16px; cursor:pointer; text-decoration:none; display:inline-block; transition:.12s; }
+    .btn-pink { background:var(--pink); color:#fff; box-shadow:3px 3px 0 var(--ink); }
+    .btn-pink:hover { transform:translate(-1px,-1px); box-shadow:4px 4px 0 var(--ink); }
+    .btn-pink:disabled { opacity:.4; cursor:not-allowed; transform:none; }
+    .btn-ghost { background:var(--cream2); color:var(--ink); box-shadow:3px 3px 0 var(--ink); }
+    .wchip { display:none; align-items:center; gap:8px; background:var(--cream2); border:2.5px solid var(--ink);
+      border-radius:12px; padding:7px 14px; font-weight:900; font-size:13px; }
+    .wchip .dot { width:9px; height:9px; border-radius:50%; background:#3CC96A; }
+
+    /* network switcher */
+    .netsw { display:flex; border:2.5px solid var(--ink); border-radius:12px; overflow:hidden;
+      box-shadow:3px 3px 0 var(--ink); }
+    .netsw button { font-family:'Koulen'; font-size:14px; padding:8px 14px; border:none;
+      cursor:pointer; background:var(--cream2); color:var(--ink-soft); }
+    .netsw button.on { background:var(--navy); color:var(--gold); }
+
+    .wrap { max-width:1180px; margin:0 auto; padding:34px 18px 90px; }
+
+    /* ===== HERO BOX ===== */
+    .stagebox { position:relative; border:4px solid var(--ink); border-radius:26px; overflow:hidden;
+      box-shadow:8px 8px 0 rgba(43,33,24,.35); margin-bottom:30px; background:var(--cream2); }
+    .stagebox .bgart { width:100%; display:block; aspect-ratio:16/9; object-fit:cover; background:#fff; }
+    .stagebox .overlay { position:absolute; inset:0; display:flex; flex-direction:column;
+      align-items:flex-start; justify-content:flex-start; padding:22px 26px 52px;
+      background:linear-gradient(180deg, rgba(239,230,206,.45) 0%, rgba(239,230,206,.05) 55%, rgba(239,230,206,0) 75%); }
+    .stagebox h1 { font-size:clamp(30px, 5vw, 50px); text-transform:uppercase; text-align:left;
+      text-shadow:0 2px 0 rgba(43,33,24,.18), 0 4px 14px rgba(239,230,206,.8); }
+    .stagebox h1 span { color:var(--pink); }
+    .stagebox .tagbar { position:absolute; bottom:0; left:0; right:0;
+      background:rgba(43,33,24,.85); color:var(--cream); font-weight:900;
+      font-size:clamp(12px, 1.8vw, 15px); padding:10px 18px; text-align:center;
+      display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; }
+    .createbtn { font-family:'Koulen'; font-size:15px; background:var(--gold); color:var(--ink);
+      border:2px solid var(--ink); border-radius:99px; padding:3px 16px; cursor:pointer;
+      text-decoration:none; box-shadow:2px 2px 0 rgba(255,255,255,.2); }
+    .createbtn:hover { transform:translate(-1px,-1px); }
+    .faqbtn { font-family:'Koulen'; font-size:15px; background:var(--pink); color:#fff;
+      border:2px solid var(--ink); border-radius:99px; padding:3px 16px; cursor:pointer; }
+    .faqbtn:hover { transform:translate(-1px,-1px); }
+
+    /* ===== FAQ MODAL ===== */
+    .modal { position:fixed; inset:0; background:rgba(43,33,24,.55); z-index:300; display:none;
+      align-items:center; justify-content:center; padding:20px; }
+    .modal.show { display:flex; }
+    .mbox { background:var(--cream2); border:4px solid var(--ink); border-radius:22px;
+      box-shadow:8px 8px 0 rgba(43,33,24,.5); max-width:660px; width:100%; max-height:82vh;
+      overflow-y:auto; padding:26px 28px; }
+    .mbox h2 { font-size:26px; margin-bottom:14px; }
+    .mbox ol { margin-left:20px; }
+    .mbox li { font-weight:600; font-size:13.5px; line-height:1.65; margin-bottom:10px; }
+    .head { text-align:center; margin-bottom:26px; }
+    .head h1 { font-size:clamp(36px, 6vw, 56px); text-transform:uppercase; }
+    .head h1 span { color:var(--pink); }
+    .head p { font-weight:700; color:var(--ink-soft); margin-top:2px; }
+
+    /* ===== CREATE PANEL (collapsible) ===== */
+    .createwrap { margin-bottom:34px; }
+    .createbar { display:flex; align-items:center; gap:16px; border:4px solid var(--ink);
+      border-radius:999px; background:var(--cream2); box-shadow:6px 6px 0 rgba(43,33,24,.3);
+      padding:10px 26px 10px 10px; cursor:pointer; }
+    .createbar img { height:64px; width:64px; object-fit:contain; border-radius:50%; }
+    .createbar .cb1 { flex:1; font-family:'Koulen'; font-size:20px; }
+    .createbar .cb2 { font-weight:700; font-size:12.5px; color:var(--ink-soft); }
+    .createform { display:none; border:4px solid var(--ink); border-top:none; border-radius:0 0 26px 26px;
+      background:var(--cream2); box-shadow:6px 6px 0 rgba(43,33,24,.3); padding:22px 24px; }
+    .createwrap.open .createform { display:block; }
+    .fgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; }
+    .fld label { display:block; font-family:'Koulen'; font-size:13px; margin-bottom:4px; }
+    .fld input, .fld select { width:100%; border:2.5px solid var(--ink); border-radius:10px;
+      padding:9px 12px; font-family:'Nunito'; font-weight:700; font-size:14px; background:#fff; }
+    .cnote { font-weight:700; font-size:12.5px; color:var(--ink-soft); margin-top:12px; line-height:1.6; }
+    .hl { background:var(--gold); border:2.5px solid var(--ink); border-radius:14px; padding:10px 16px;
+      margin-top:12px; font-weight:900; font-size:13.5px; text-align:center; }
+
+    /* ===== TABS + SEARCH ===== */
+    .listbar { display:flex; align-items:center; justify-content:space-between; gap:14px;
+      flex-wrap:wrap; margin-bottom:22px; }
+    .tabs { display:flex; gap:4px; }
+    .tab { font-family:'Koulen'; font-size:16px; padding:8px 18px; border:none; border-radius:99px;
+      background:transparent; color:var(--ink-soft); cursor:pointer; transition:.12s; }
+    .tab.on { background:var(--pink); color:#fff; box-shadow:3px 3px 0 var(--ink); }
+    .btn-new { font-family:'Koulen'; font-size:16px; padding:8px 20px; border:2.5px solid var(--ink);
+      border-radius:99px; background:var(--gold); color:var(--ink); text-decoration:none;
+      box-shadow:3px 3px 0 var(--ink); transition:.12s; }
+    .btn-new:hover { transform:translate(-1px,-1px); box-shadow:4px 4px 0 var(--ink); }
+    .sech { font-size:24px; text-transform:uppercase; margin-bottom:16px; }
+    .sech span { color:var(--gold); -webkit-text-stroke:1px var(--ink); }
+    .search { flex:1; max-width:280px; display:flex; align-items:center; gap:8px;
+      border:2.5px solid var(--ink); border-radius:99px; background:#fff; padding:8px 16px; }
+    .search input { border:none; outline:none; font-family:'Nunito'; font-weight:700; font-size:14px; width:100%; background:transparent; }
+
+    /* ===== TILE GRID ===== */
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:22px; }
+    .tile { background:var(--cream2); border:3.5px solid var(--ink); border-radius:22px; overflow:hidden;
+      box-shadow:6px 6px 0 rgba(43,33,24,.3); display:flex; flex-direction:column; position:relative;
+      transition:transform .15s, box-shadow .15s; }
+    .tile:hover { transform:translate(-3px,-3px); box-shadow:9px 9px 0 rgba(43,33,24,.35); }
+    .timg { position:relative; background:var(--navy); aspect-ratio:16/10; display:flex;
+      align-items:center; justify-content:center; }
+    .timg img { width:72%; height:72%; object-fit:contain; }
+    .timg .soldout { position:absolute; inset:0; background:rgba(43,33,24,.55); display:flex;
+      align-items:center; justify-content:center; font-family:'Koulen'; font-size:26px; color:var(--gold);
+      letter-spacing:2px; }
+    .timg .tbadge { position:absolute; top:10px; left:10px; font-family:'Koulen'; font-size:12px;
+      background:var(--pink); color:#fff; padding:2px 12px; border:2px solid var(--ink); border-radius:99px; }
+    .timg .tbadge.settled { background:var(--navy); color:var(--gold); }
+    .timg .tkbadge { position:absolute; top:10px; right:10px; font-family:'Koulen'; font-size:12px;
+      background:var(--gold); color:var(--ink); padding:2px 12px; border:2px solid var(--ink); border-radius:99px; }
+    .tmeta { padding:14px 16px 16px; display:flex; flex-direction:column; gap:8px; flex:1; }
+    .trow1 { display:flex; justify-content:space-between; align-items:center; }
+    .tcount { font-family:'Koulen'; font-size:16px; color:var(--pink-dark); }
+    .tcount.done { color:var(--ink-soft); }
+    .twho { font-weight:800; font-size:12px; color:var(--ink-soft); }
+    .ttitle { font-family:'Koulen'; font-size:21px; line-height:1.05; }
+    .tstats { display:flex; justify-content:space-between; font-weight:800; font-size:13px; }
+    .tstats .lab { color:var(--ink-soft); font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing:.5px; display:block; }
+    .tstats .val { color:var(--ink); }
+    .tstats .val.pink { color:var(--pink); }
+    .tbtn { margin-top:auto; text-align:center; font-family:'Koulen'; font-size:16px; padding:10px;
+      border:2.5px solid var(--ink); border-radius:14px; background:var(--pink); color:#fff;
+      cursor:pointer; transition:.12s; box-shadow:3px 3px 0 var(--ink); }
+    .tbtn:hover { transform:translate(-1px,-1px); box-shadow:4px 4px 0 var(--ink); }
+    .tbtn.done { background:var(--gold); color:var(--ink); }
+    .twinners { margin-top:auto; background:var(--gold); border:2.5px solid var(--ink); border-radius:12px;
+      padding:8px 12px; font-weight:900; font-size:12.5px; text-align:center; }
+    .empty { grid-column:1/-1; text-align:center; font-weight:800; color:var(--ink-soft); padding:50px; font-size:16px; }
+
+    /* T&C modal */
+    .modal { position:fixed; inset:0; background:rgba(43,33,24,.55); z-index:300; display:none;
+      align-items:center; justify-content:center; padding:20px; }
+    .modal.show { display:flex; }
+    .mbox { background:var(--cream2); border:4px solid var(--ink); border-radius:22px;
+      box-shadow:8px 8px 0 rgba(43,33,24,.5); max-width:640px; width:100%; max-height:82vh;
+      overflow-y:auto; padding:26px 28px; }
+    .mbox h2 { font-size:26px; margin-bottom:14px; }
+    .mbox ol { margin-left:20px; }
+    .mbox li { font-weight:600; font-size:13.5px; line-height:1.65; margin-bottom:9px; color:var(--ink); }
+    .mclose { margin-top:16px; }
+
+    .foot { text-align:center; margin-top:56px; font-weight:700; color:var(--ink-soft); font-size:13px; }
+    .foot a { color:var(--pink); text-decoration:none; }
+    .toast { position:fixed; bottom:22px; left:50%; transform:translateX(-50%); background:var(--navy);
+      color:#fff; font-weight:900; padding:12px 24px; border-radius:14px; border:3px solid var(--ink);
+      z-index:400; display:none; font-size:14px; box-shadow:5px 5px 0 rgba(0,0,0,.3); max-width:90vw; }
+  </style>
+</head>
+<body>
+
+<nav class="top">
+  <a class="brand" href="/">
+    <img src="assets/logo.webp" alt="chog">
+    <span><span class="t1">CHOGUNIVERSE</span><br><span class="t2">CHOGFFLE</span></span>
+  </a>
+  <div class="topright">
+    <div class="netsw">
+      <button id="netRH" class="on">RH TESTNET</button>
+      <button id="netMO">MONAD TESTNET</button>
+    </div>
+    <a class="btn btn-ghost" href="/">← HOME</a>
+    <div class="wchip" id="wchip"><span class="dot"></span><span id="waddr"></span></div>
+    <button class="btn btn-pink" id="connectBtn">CONNECT WALLET</button>
+  </div>
+</nav>
+
+<div class="wrap">
+  <!-- HERO BOX -->
+  <div class="stagebox">
+    <img class="bgart" src="assets/chogffle-hero.webp" alt="chogs celebrating a raffle draw">
+    <div class="overlay">
+      <h1>CHOG<span>FFLE</span></h1>
+    </div>
+    <div class="tagbar">raffle your chogs — held by the contract, drawn on-chain
+      <a class="createbtn" href="/create-raffle.html">+ CREATE</a>
+      <button class="faqbtn" id="faqBtn">T&C</button>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="listbar">
+    <div class="tabs">
+      <button class="tab on" id="tabAll">ALL CHOGFFLES</button>
+      <button class="tab" id="tabPast">PAST CHOGFFLES</button>
+    </div>
+    <div class="search">🔍<input id="q" placeholder="search chogffles"></div>
+  </div>
+
+  <h2 class="sech" id="hlTitle" style="display:none">HIGHLIGHTED <span>★</span></h2>
+  <div class="grid" id="gridHL" style="margin-bottom:34px"></div>
+
+  <div class="grid" id="grid"><div class="empty">loading…</div></div>
+
+  <div class="foot">chogffle — vibecoded by <a href="https://x.com/bocilelv" target="_blank" rel="noopener">@bocilelv</a></div>
+</div>
+
+<!-- T&C MODAL -->
+<div class="modal" id="tcModal">
+  <div class="mbox">
+    <h2>TERMS & <span style="color:var(--pink)">CONDITIONS</span></h2>
+    <ol>
+      <li>When you create a raffle, the NFT prize you have selected will be automatically transferred from your wallet into the smart contract itself, where it is securely held for the duration of the raffle. The prize never touches a personal wallet, and nobody — not even the team — can move it until the raffle is drawn.</li>
+      <li>You will be charged an up-front refundable deposit of 0.05 ETH when creating a raffle. This deposit will be automatically refunded once the raffle concludes.</li>
+      <li>CHOG Genesis NFT holders who have staked their NFTs prior to creating a raffle will receive a 50% off fee discount. Their raffles will also be featured in the "Highlight" section on the platform's homepage.</li>
+      <li>If no tickets are sold for your raffle, your NFT will be returned to you. However, if at least one ticket is sold, the NFT will no longer be refundable to the raffle creator.</li>
+      <li>You can specify the duration of your raffle when creating it. All raffles must run for a minimum of 24 hours and a maximum of 30 days.</li>
+      <li>Chogffle will charge a 5% commission fee on the total revenue generated from raffle ticket sales.</li>
+      <li>Raffles CANNOT be edited or canceled once at least one ticket has been sold.</li>
+      <li>Purchasing tickets for your own raffle using alternative wallets is strictly prohibited. Any raffle found engaging in such activity will be flagged as suspicious and removed from all search results on Chogffle.</li>
+    </ol>
+    <button class="btn btn-pink" id="tcClose" style="margin-top:16px;">GOT IT</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="ethers.js"></script>
+<script>
+// ---------- config dua network ----------
+const NETWORKS = {
+  RH: {
+    key: 'RH', label: 'RH TESTNET', chainId: '0xb626', chainIdDec: 46630, name: 'Robinhood Chain Testnet',
+    rpc: 'https://rpc.testnet.chain.robinhood.com', explorer: 'https://explorer.testnet.chain.robinhood.com',
+    nft: '0x9897d240f5241672A0455621bb7F3E8352A99Fc4',
+    raffle: '0x40BaDC5F14Bd5c42C72d7B4267434Febe92F7157',
+    symbol: 'ETH', erc20s: [
+      { label: 'ETH (native)', addr: '0x0000000000000000000000000000000000000000', dec: 18 },
+      { label: 'USDG', addr: '0x0000000000000000000000000000000000000000', dec: 18 }, // TODO addr USDG
+    ],
+  },
+  MO: {
+    key: 'MO', label: 'MONAD TESTNET', chainId: '0x279f', chainIdDec: 10143, name: 'Monad Testnet',
+    rpc: 'https://testnet-rpc.monad.xyz', explorer: 'https://testnet.monadexplorer.com',
+    nft: '0x149D68Caa85FdA6Cf135a63e425485783C42EB28',
+    raffle: '0x2bBa918544e2ba236e730859108bd3E0921077Af',
+    symbol: 'MON', erc20s: [
+      { label: 'MON (native)', addr: '0x0000000000000000000000000000000000000000', dec: 18 },
+      { label: 'CHOG', addr: '0x350035555E10d9AfAF1566AaebfCeD5BA6C27777', dec: 18 },
+    ],
+  },
+};
+let NET = NETWORKS.RH;
+
+const NFT_ABI = [
+  'function ownerOf(uint256) view returns (address)',
+  'function setApprovalForAll(address,bool)',
+  'function isApprovedForAll(address,address) view returns (bool)',
+  'event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)',
+];
+const R_ABI = [
+  'function create(string title, uint256 prizeTokenId, uint64 endsAt, uint32 winnerCount, uint32 ticketSupply, uint256 ticketPrice, address paymentToken)',
+  'function buyTicket(uint256 id, uint32 count)',
+  'function settle(uint256 id)',
+  'function cancel(uint256 id)',
+  'function raffleCount() view returns (uint256)',
+  'function raffles(uint256) view returns (address creator, uint256 prizeTokenId, uint64 endsAt, uint32 winnerCount, uint32 ticketSupply, uint32 ticketsSold, uint256 ticketPrice, address paymentToken, string title, bool settled, bool cancelled)',
+  'function winnersOf(uint256) view returns (address[])',
+];
+
+const $ = id => document.getElementById(id);
+const short = a => a.slice(0, 6) + '…' + a.slice(-4);
+let prov, rRO, ifaceN, state = { account: null, myTokens: [], tab: 'all' };
+let signer = null;
+const GP = () => ({ maxFeePerGas: ethers.utils.parseUnits(NET.key === 'MO' ? '250' : '0.05', 'gwei'), maxPriorityFeePerGas: ethers.utils.parseUnits(NET.key === 'MO' ? '2' : '0.05', 'gwei') });
+
+function toast(m) { const t = $('toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = 'none', 3400); }
+
+function setNet(key) {
+  NET = NETWORKS[key];
+  $('netRH').classList.toggle('on', key === 'RH');
+  $('netMO').classList.toggle('on', key === 'MO');
+  prov = new ethers.providers.JsonRpcProvider(NET.rpc);
+  rRO = new ethers.Contract(NET.raffle, R_ABI, prov);
+  ifaceN = new ethers.utils.Interface(NFT_ABI);
+  if (signer) { toast('Switched to ' + NET.label + ' — switching your wallet too…'); switchWalletChain(); }
+  refresh();
+}
+$('netRH').onclick = () => setNet('RH');
+
+// FAQ
+$('faqBtn').onclick = () => $('tcModal').classList.add('show');
+$('tcClose').onclick = () => $('tcModal').classList.remove('show');
+$('tcModal').onclick = e => { if (e.target === $('tcModal')) $('tcModal').classList.remove('show'); };
+
+setNet('RH');
+$('netMO').onclick = () => setNet('MO');
+
+// ---------- tabs (HL = section terpisah di atas, bukan tab) ----------
+$('tabAll').onclick = () => setTab('all');
+$('tabPast').onclick = () => setTab('past');
+function setTab(t) {
+  state.tab = t;
+  $('tabAll').classList.toggle('on', t === 'all');
+  $('tabPast').classList.toggle('on', t === 'past');
+  render();
+}
+
+
+// ---------- data ----------
+let items = [];
+async function refresh() {
+  try {
+    const cnt = (await rRO.raffleCount()).toNumber();
+    const arr = [];
+    for (let id = cnt; id >= 1 && id > cnt - 40; id--) {
+      try {
+        const r = await rRO.raffles(id);
+        if (r.cancelled) continue;
+        arr.push({ id, r });
+      } catch (e) {}
+    }
+    items = arr;
+    render();
+  } catch (e) { $('grid').innerHTML = '<div class="empty">connection hiccup — retrying…</div>'; }
+}
+
+function render() {
+  const q = $('q').value.toLowerCase();
+  const now = Math.floor(Date.now() / 1000);
+  // uint32/uint64 kecil dateng sebagai number polos (ethers v5), uint256 sebagai BigNumber —
+  // helper aman:
+  const N = v => (typeof v === 'number' ? v : v.toNumber());
+
+  // HIGHLIGHTED section (atas) — khusus CHOG Genesis holders yang staking (staking integration coming)
+  const hlList = items.filter(({ r }) => !r.settled && now < N(r.endsAt)).slice(0, 4);
+  $('hlTitle').style.display = '';
+  $('gridHL').innerHTML = hlList.length
+    ? hlList.map(({ id, r }) => tileHTML(id, r, now, N)).join('')
+    : '<div class="empty" style="grid-column:1/-1">no highlighted raffles running — stake your CHOG Genesis to get featured here ✨</div>';
+
+  let list = items.filter(({ r }) => {
+    const ended = now >= N(r.endsAt);
+    if (state.tab === 'past') return r.settled || ended;
+    return true;
+  });
+  if (q) list = list.filter(({ r }) => r.title.toLowerCase().includes(q) || ('#' + r.prizeTokenId.toString()).includes(q));
+
+  if (!list.length) { $('grid').innerHTML = `<div class="empty">no chogffles here — run the first one 🎁</div>`; return; }
+
+  $('grid').innerHTML = list.map(({ id, r }) => tileHTML(id, r, now, N)).join('');
+  winnersAsync();
+}
+
+function tileHTML(id, r, now, N) {
+    const ended = now >= N(r.endsAt);
+    const sold = N(r.ticketsSold), sup = N(r.ticketSupply);
+    const soldOut = sold >= sup;
+    const price = (+ethers.utils.formatEther(r.ticketPrice)).toString();
+    const isNative = r.paymentToken === '0x0000000000000000000000000000000000000000';
+    const sym = isNative ? NET.symbol : 'TOKEN';
+    const mine = state.account && r.creator.toLowerCase() === state.account.toLowerCase();
+    const featured = false; // TODO staking integration
+
+    let cta, badge;
+    if (r.settled) {
+      badge = 'SETTLED'; cta = null;
+    } else if (ended) {
+      badge = 'DRAWING'; cta = 'DRAW WINNERS 🎲';
+    } else {
+      badge = featured ? '★ HIGHLIGHT' : 'LIVE';
+      cta = soldOut ? null : 'BUY TICKET 🎟️';
+    }
+
+    return `<div class="tile" data-id="${id}">
+      <div class="timg">
+        <img src="assets/chog-portrait.webp" alt="">
+        <span class="tbadge ${r.settled ? 'settled' : ''}">${badge}</span>
+        <span class="tkbadge">${sold}/${sup}</span>
+        ${soldOut && !r.settled && !ended ? '<div class="soldout">SOLD OUT</div>' : ''}
+      </div>
+      <div class="tmeta">
+        <div class="trow1">
+          <span class="tcount ${ended ? 'done' : ''}">${r.settled ? 'done' : (ended ? 'ended' : fmtDur(N(r.endsAt) - now))}</span>
+          <span class="twho">by ${mine ? 'YOU' : short(r.creator)}</span>
+        </div>
+        <div class="ttitle">${r.title}</div>
+        <div class="tstats">
+          <div><span class="lab">price / ticket</span><span class="val pink">${price} ${sym}</span></div>
+          <div style="text-align:right"><span class="lab">tickets</span><span class="val">${sold} / ${sup}</span></div>
+          <div style="text-align:right"><span class="lab">prize</span><span class="val">CHOG #${r.prizeTokenId.toString()}</span></div>
+        </div>
+        ${r.settled
+          ? `<div class="twinners">🏆 winners loading…</div>`
+          : cta ? `<div class="tbtn ${cta.startsWith('DRAW') ? 'done' : ''}" onclick="tileAct(${id}, '${cta.startsWith('DRAW') ? 'settle' : 'buy'}')">${cta}</div>`
+          : `<div class="twinners" style="background:var(--cream2)">waiting draw…</div>`}
+      </div>
+    </div>`;
+}
+
+function winnersAsync() {
+  // winners async
+  items.filter(i => i.r.settled).forEach(async ({ id }) => {
+    try {
+      const w = await rRO.winnersOf(id);
+      const el = document.querySelector(`.tile[data-id="${id}"] .twinners`);
+      if (el) el.textContent = '🏆 ' + w.map(x => short(x)).join(' · ');
+    } catch (e) {}
+  });
+}
+
+const fmtDur = s => {
+  if (s <= 0) return 'ended';
+  if (s < 3600) return Math.ceil(s / 60) + 'm left';
+  if (s < 86400) return Math.ceil(s / 3600) + 'h left';
+  return Math.ceil(s / 86400) + 'd left';
+};
+
+// ---------- actions ----------
+window.tileAct = async function(id, act) {
+  if (!signer) return toast('Please connect your wallet first');
+  try {
+    const r = items.find(i => i.id === id).r;
+    const c = new ethers.Contract(NET.raffle, R_ABI, signer);
+    if (act === 'buy') {
+      const isNative = r.paymentToken === '0x0000000000000000000000000000000000000000';
+      const value = isNative ? r.ticketPrice : 0;
+      toast('Please confirm in your wallet…');
+      await (await c.buyTicket(id, 1, { value, ...GP() })).wait();
+      toast('Ticket bought! 🎟️');
+    } else if (act === 'settle') {
+      toast('Drawing winners on-chain…');
+      await (await c.settle(id, GP())).wait();
+      toast('Winners drawn! 🏆');
+    }
+    refresh();
+  } catch (e) { toast('Failed: ' + (e.data?.message || e.message).slice(0, 70)); }
+};
+
+// ---------- wallet ----------
+async function switchWalletChain() {
+  if (!window.ethereum) return;
+  try {
+    await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: NET.chainId }] });
+  } catch (e) {
+    if (e.code === 4902) {
+      await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [{
+        chainId: NET.chainId, chainName: NET.name,
+        nativeCurrency: { name: NET.symbol === 'MON' ? 'Mon' : 'Ether', symbol: NET.symbol, decimals: 18 },
+        rpcUrls: [NET.rpc], blockExplorerUrls: [NET.explorer],
+      }]});
+    }
+  }
+}
+
+async function connect() {
+  if (!window.ethereum) return toast('Please install MetaMask 🦊');
+  try {
+    const accs = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    state.account = accs[0];
+    await switchWalletChain();
+    signer = new ethers.providers.Web3Provider(window.ethereum).getSigner();
+    $('connectBtn').style.display = 'none';
+    $('wchip').style.display = 'flex';
+    $('waddr').textContent = short(state.account);
+    toast('Wallet connected on ' + NET.label + ' 🐴');
+    refresh();
+  } catch (e) { toast('Connection failed — please try again'); }
+}
+$('connectBtn').onclick = connect;
+
+setNet('RH');
+setInterval(() => { if (!document.hidden) refresh(); }, 15000);
+</script>
+</body>
+</html>

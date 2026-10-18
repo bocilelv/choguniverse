@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Choguniverse — Coinflip</title>
+  <link rel="icon" type="image/webp" href="assets/logo.webp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Koulen&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cream:#EFE6CE; --cream2:#F7F0DD; --ink:#2B2118; --ink-soft:#5C4F3F;
+      --pink:#EC2F7A; --pink-dark:#C41F62; --navy:#1B2B4B; --gold:#F2C14E; --purple:#7B5FC7;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:var(--cream); color:var(--ink); font-family:'Nunito',sans-serif; min-height:100vh; }
+    h1,h2,h3,.koulen { font-family:'Koulen',sans-serif; font-weight:400; letter-spacing:.5px; }
+
+    .top { position:sticky; top:0; z-index:50; display:flex; align-items:center;
+      justify-content:space-between; padding:10px 18px; background:rgba(239,230,206,.96);
+      border-bottom:3px solid var(--ink); backdrop-filter:blur(8px); }
+    .brand { display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--ink); }
+    .brand img { width:38px; height:38px; border-radius:10px; border:2.5px solid var(--ink); }
+    .brand .t1 { font-family:'Koulen'; font-size:20px; line-height:1; }
+    .brand .t2 { font-size:9px; font-weight:900; color:var(--pink); letter-spacing:1.5px; }
+    .topright { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .btn { font-family:'Koulen'; font-size:15px; border:2.5px solid var(--ink); border-radius:12px;
+      padding:8px 16px; cursor:pointer; text-decoration:none; display:inline-block; transition:.12s; }
+    .btn-pink { background:var(--pink); color:#fff; box-shadow:3px 3px 0 var(--ink); }
+    .btn-pink:hover { transform:translate(-1px,-1px); box-shadow:4px 4px 0 var(--ink); }
+    .btn-pink:disabled { opacity:.4; cursor:not-allowed; transform:none; }
+    .btn-ghost { background:var(--cream2); color:var(--ink); box-shadow:3px 3px 0 var(--ink); }
+    .wchip { display:none; align-items:center; gap:8px; background:var(--cream2); border:2.5px solid var(--ink);
+      border-radius:12px; padding:7px 14px; font-weight:900; font-size:13px; }
+    .wchip .dot { width:9px; height:9px; border-radius:50%; background:#3CC96A; }
+    .netsw { display:flex; border:2.5px solid var(--ink); border-radius:12px; overflow:hidden;
+      box-shadow:3px 3px 0 var(--ink); }
+    .netsw button { font-family:'Koulen'; font-size:14px; padding:8px 14px; border:none;
+      cursor:pointer; background:var(--cream2); color:var(--ink-soft); }
+    .netsw button.on { background:var(--navy); color:var(--gold); }
+
+    .wrap { max-width:980px; margin:0 auto; padding:40px 18px 90px; }
+
+    /* ===== STAGE BOX (chog dealer) ===== */
+    .stagebox { position:relative; border:4px solid var(--ink); border-radius:26px; overflow:hidden;
+      box-shadow:8px 8px 0 rgba(43,33,24,.35); margin-bottom:34px; background:var(--cream2); }
+    .stagebox .bgart { width:100%; display:block; aspect-ratio:16/9; object-fit:cover; }
+    .stagebox .overlay { position:absolute; inset:0; display:flex; flex-direction:column;
+      align-items:flex-start; justify-content:flex-start; padding:22px 26px 52px;
+      background:linear-gradient(180deg, rgba(239,230,206,.45) 0%, rgba(239,230,206,.05) 55%, rgba(239,230,206,0) 75%); }
+    .stagebox h1 { font-size:clamp(30px, 5vw, 50px); text-transform:uppercase; text-align:left;
+      text-shadow:0 2px 0 rgba(43,33,24,.18), 0 4px 14px rgba(239,230,206,.8); }
+    .stagebox h1 span { color:var(--pink); }
+    .stagebox .tagbar { position:absolute; bottom:0; left:0; right:0;
+      background:rgba(43,33,24,.85); color:var(--cream); font-weight:900;
+      font-size:clamp(12px, 1.8vw, 15px); padding:10px 18px; text-align:center;
+      display:flex; align-items:center; justify-content:center; gap:14px; }
+    .faqbtn { font-family:'Koulen'; font-size:13px; background:var(--gold); color:var(--ink);
+      border:2px solid var(--ink); border-radius:99px; padding:3px 14px; cursor:pointer; }
+    .faqbtn:hover { transform:translate(-1px,-1px); }
+
+    .board { display:grid; grid-template-columns:1fr; gap:34px; max-width:460px; margin:0 auto; }
+    @media (min-width:820px) { .board { grid-template-columns:1fr 1fr; max-width:none; align-items:center; } }
+
+    .coinzone { display:flex; flex-direction:column; align-items:center; gap:14px; }
+    .coin { width:170px; height:170px; border-radius:50%; position:relative; transform-style:preserve-3d; }
+    .face { position:absolute; inset:0; border-radius:50%; backface-visibility:hidden;
+      display:flex; align-items:center; justify-content:center; border:4px solid var(--ink);
+      background:var(--cream2); overflow:hidden;
+      box-shadow:0 10px 22px rgba(43,33,24,.35); }
+    .face img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+    .face.tails { transform:rotateY(180deg); }
+    .result { font-family:'Koulen'; font-size:26px; min-height:34px; letter-spacing:1px;
+      color:#fff; text-shadow:0 2px 6px rgba(43,33,24,.6); }
+    .result.win { color:var(--gold); }
+    .result.lose { color:#fff; }
+
+    .ctrl { display:flex; flex-direction:column; gap:18px; }
+    .sidepick { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .sp { border:3px solid var(--ink); border-radius:16px; background:var(--cream2); cursor:pointer;
+      padding:14px; display:flex; flex-direction:column; align-items:center; gap:8px;
+      font-family:'Koulen'; font-size:18px; transition:.13s; color:var(--ink); }
+    .sp img { width:56px; height:56px; border-radius:50%; border:2.5px solid var(--ink); object-fit:cover; }
+    .sp.sel { background:var(--gold); box-shadow:4px 4px 0 var(--ink); transform:translate(-2px,-2px); }
+    .wager { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+    .chip { border:2.5px solid var(--ink); border-radius:99px; background:var(--cream2);
+      font-family:'Koulen'; font-size:16px; padding:7px 16px; cursor:pointer; transition:.12s; color:var(--ink); }
+    .chip.sel { background:var(--navy); color:var(--gold); }
+    .chip:disabled { opacity:.35; cursor:not-allowed; }
+    .flipbtn { font-size:24px; padding:16px; border-radius:16px; width:100%; }
+    .stats { display:flex; justify-content:center; gap:22px; font-weight:900; font-size:13.5px;
+      color:var(--ink-soft); flex-wrap:wrap; }
+    .stats b { color:var(--ink); }
+
+    .feed { max-height:230px; overflow-y:auto; border:3px solid var(--ink); border-radius:16px;
+      background:var(--cream2); padding:10px; margin-top:10px; }
+    .frow { display:flex; align-items:center; gap:9px; padding:7px 8px; border-radius:10px; font-size:13px; font-weight:700; }
+    .frow:nth-child(odd) { background:#fff; }
+    .frow img { width:24px; height:24px; border-radius:50%; border:2px solid var(--gold); }
+    .frow .who { color:var(--pink-dark); }
+    .frow .res { margin-left:auto; font-family:'Koulen'; font-size:14px; }
+    .frow .res.w { color:var(--pink); }
+    .frow .res.l { color:var(--ink-soft); }
+
+    .modal { position:fixed; inset:0; background:rgba(43,33,24,.55); z-index:300; display:none;
+      align-items:center; justify-content:center; padding:20px; }
+    .modal.show { display:flex; }
+    .mbox { background:var(--cream2); border:4px solid var(--ink); border-radius:22px;
+      box-shadow:8px 8px 0 rgba(43,33,24,.5); max-width:620px; width:100%; max-height:82vh;
+      overflow-y:auto; padding:26px 28px; }
+    .mbox h2 { font-size:26px; margin-bottom:16px; }
+    .qa .q { font-family:'Koulen'; font-size:17px; margin-top:14px; color:var(--pink-dark); }
+    .qa .a { font-weight:600; font-size:14px; line-height:1.6; color:var(--ink); margin-top:4px; }
+    .qa code { background:rgba(232,160,76,.12); border:1.5px solid var(--ink); border-radius:8px;
+      padding:2px 8px; font-size:12px; color:var(--pink-dark); word-break:break-all; }
+    .vaultnote { color:#D0303B; font-weight:800; font-size:11.5px; text-align:center; line-height:1.4; }
+    .toast { position:fixed; bottom:22px; left:50%; transform:translateX(-50%); background:var(--navy);
+      color:#fff; font-weight:900; padding:12px 24px; border-radius:14px; border:3px solid var(--ink);
+      z-index:400; display:none; font-size:14px; box-shadow:5px 5px 0 rgba(0,0,0,.3); max-width:90vw; }
+    .foot { text-align:center; margin-top:56px; font-weight:700; color:var(--ink-soft); font-size:13px; }
+    .foot a { color:var(--pink); text-decoration:none; }
+  </style>
+</head>
+<body>
+
+<nav class="top">
+  <a class="brand" href="/">
+    <img src="assets/logo.webp" alt="chog">
+    <span><span class="t1">CHOGUNIVERSE</span><br><span class="t2">COINFLIP</span></span>
+  </a>
+  <div class="topright">
+    <div class="netsw">
+      <button id="netRH" class="on">RH TESTNET</button>
+      <button id="netMO">MONAD TESTNET</button>
+    </div>
+    <a class="btn btn-ghost" href="/">← HOME</a>
+    <div class="wchip" id="wchip"><span class="dot"></span><span id="waddr"></span></div>
+    <button class="btn btn-pink" id="connectBtn">CONNECT WALLET</button>
+  </div>
+</nav>
+
+<div class="wrap">
+  <!-- HEAD BOX: title doang, art chog dealer -->
+  <div class="stagebox">
+    <img class="bgart" src="assets/coinflip-stage.webp" alt="chog dealer with two coins">
+    <div class="overlay">
+      <h1>CHOG<span>FLIP</span></h1>
+    </div>
+    <div class="tagbar">pick a side. flip the coin. double or nothing. <button class="faqbtn" id="faqBtn">FAQ ?</button></div>
+  </div>
+
+  <div class="board">
+    <div class="coinzone">
+      <div class="coin" id="coin">
+        <div class="face heads"><img src="assets/coin-heads.webp" alt="heads"></div>
+        <div class="face tails"><img src="assets/coin-tails.webp" alt="tails"></div>
+      </div>
+      <div class="result" id="result">—</div>
+    </div>
+
+    <div class="ctrl">
+      <div class="sidepick">
+        <button class="sp sel" id="spH" onclick="pickSide(1)"><img src="assets/coin-heads.webp" alt="">HEADS</button>
+        <button class="sp" id="spT" onclick="pickSide(2)"><img src="assets/coin-tails.webp" alt="">TAILS</button>
+      </div>
+      <div class="wager" id="wager"></div>
+      <button class="btn btn-pink flipbtn" id="flipBtn">FLIP 🪙</button>
+      <div class="vaultnote" id="vaultnote" style="display:none">⚠ vault low — bets above max bet will revert. play the minimum.</div>
+      <div class="stats">
+        <span>flips <b id="sFlips">…</b></span>
+        <span>wagered <b id="sWagered">…</b></span>
+        <span>vault <b id="sVault">…</b></span>
+        <span>max bet <b id="sMax">…</b></span>
+      </div>
+    </div>
+    <div>
+      <div class="koulen" style="font-size:15px;margin-bottom:6px;">LIVE FLIPS</div>
+      <div class="feed" id="feed"><div style="text-align:center;font-weight:700;font-size:13px;color:var(--ink-soft);padding:12px">loading…</div></div>
+    </div>
+  </div>
+
+  <div class="foot">win ×2 · house edge 5% · provably fair on-chain RNG · vibecoded by <a href="https://x.com/bocilelv" target="_blank" rel="noopener">@bocilelv</a></div>
+</div>
+
+<!-- FAQ MODAL -->
+<div class="modal" id="faqModal">
+  <div class="mbox">
+    <h2>FREQUENTLY ASKED <span style="color:var(--pink)">QUESTIONS</span></h2>
+    <div class="qa">
+      <div class="q">What tokens can I flip?</div>
+      <div class="a">You can flip ETH (Ethereum) on Robinhood Chain or MON (Monad) on Monad Network.</div>
+      <div class="q">What are the fees?</div>
+      <div class="a">We charge 5% per flip, regardless of whether you win or lose.<br><br>For example, flipping 100 MON will cost a total of 105 MON, including fees.</div>
+      <div class="q">How do I collect my winnings?</div>
+      <div class="a">Your winnings will be automatically transferred directly to your wallet.</div>
+      <div class="q">What's the maximum amount I can bet?</div>
+      <div class="a">Each token has its own maximum betting limit based on our treasury size.<br><br>You can bet any amount up to the maximum limit!</div>
+      <div class="q">What are the on-chain contract addresses?</div>
+      <div class="a">Treasury Contract: <code id="faqAddr">loading…</code><br><br>All transactions can be verified on-chain through the respective network's block explorer.</div>
+    </div>
+    <button class="btn btn-pink" id="faqClose" style="margin-top:16px;">GOT IT</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="ethers.js"></script>
+<script>
+const NETWORKS = {
+  RH: { key: 'RH', chainId: '0xb626', name: 'Robinhood Chain Testnet', rpc: 'https://rpc.testnet.chain.robinhood.com',
+    flip: '0xbd5645D8c2497a3c2D185a768aF7Fa0608e8f14C', symbol: 'ETH',
+    gp: () => ({ maxFeePerGas: ethers.utils.parseUnits('0.05','gwei'), maxPriorityFeePerGas: ethers.utils.parseUnits('0.05','gwei') }) },
+  MO: { key: 'MO', chainId: '0x279f', name: 'Monad Testnet', rpc: 'https://testnet-rpc.monad.xyz',
+    flip: '0x70CDC7fE7E032Fa116bece160D9E56C012bC4210', symbol: 'MON',
+    gp: () => ({ maxFeePerGas: ethers.utils.parseUnits('250','gwei'), maxPriorityFeePerGas: ethers.utils.parseUnits('2','gwei') }) },
+};
+const CHIPS = { RH: [0.001, 0.005, 0.01, 0.025, 0.05], MO: [1, 10, 100, 500, 1000] };
+let NET = NETWORKS.RH;
+const FLIP_ABI = [
+  'function flip() payable',
+  'function totalFlips() view returns (uint256)',
+  'function totalWagered() view returns (uint256)',
+  'function maxBet() view returns (uint256)',
+  'event Flipped(address indexed player, uint256 indexed flipId, bool won, uint256 stake, uint256 payout)',
+];
+const $ = id => document.getElementById(id);
+const short = a => a.slice(0, 6) + '…' + a.slice(-4);
+let prov, ro, iface, signer = null, account = null;
+let side = 1, stake = 0.001;
+
+function toast(m) { const t = $('toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = 'none', 3200); }
+
+function setNet(key) {
+  NET = NETWORKS[key];
+  $('netRH').classList.toggle('on', key === 'RH');
+  $('netMO').classList.toggle('on', key === 'MO');
+  prov = new ethers.providers.JsonRpcProvider(NET.rpc);
+  ro = new ethers.Contract(NET.flip, FLIP_ABI, prov);
+  iface = new ethers.utils.Interface(FLIP_ABI);
+  if (signer) { toast('Switched to ' + (key === 'MO' ? 'Monad' : 'RH') + '…'); switchWalletChain(); }
+  paintWager();
+  refreshStats(); refreshFeed();
+}
+$('netRH').onclick = () => setNet('RH');
+$('netMO').onclick = () => setNet('MO');
+
+// FAQ
+$('faqBtn').onclick = () => { $('faqAddr').textContent = NET.flip; $('faqModal').classList.add('show'); };
+$('faqClose').onclick = () => $('faqModal').classList.remove('show');
+$('faqModal').onclick = e => { if (e.target === $('faqModal')) $('faqModal').classList.remove('show'); };
+
+let maxBetWei = null; // diisi refreshStats
+function paintWager() {
+  if (!CHIPS[NET.key].includes(stake)) stake = CHIPS[NET.key][0];
+  // stake di atas max bet? turunin ke chip valid tertinggi
+  const valid = CHIPS[NET.key].filter(c => maxBetWei === null || ethers.utils.parseEther(String(c)).lte(maxBetWei));
+  if (valid.length && !valid.includes(stake)) stake = valid[valid.length - 1];
+  $('wager').innerHTML = CHIPS[NET.key].map(c => {
+    const over = maxBetWei !== null && ethers.utils.parseEther(String(c)).gt(maxBetWei);
+    return `<button class="chip ${c === stake ? 'sel' : ''}" ${over ? 'disabled title="above current max bet"' : ''} onclick="setStake(${c})">${c}</button>`;
+  }).join('');
+}
+window.setStake = v => { stake = v; paintWager(); };
+window.pickSide = s => {
+  side = s;
+  $('spH').classList.toggle('sel', s === 1);
+  $('spT').classList.toggle('sel', s === 2);
+};
+paintWager();
+
+async function refreshStats() {
+  try {
+    const [flips, wagered, vault] = await Promise.all([
+      ro.totalFlips(), ro.totalWagered(), prov.getBalance(NET.flip),
+    ]);
+    const max = await ro.maxBet();
+    $('sFlips').textContent = flips.toString();
+    $('sWagered').textContent = (+ethers.utils.formatEther(wagered)).toFixed(3);
+    $('sVault').textContent = (+ethers.utils.formatEther(vault)).toFixed(2) + ' ' + NET.symbol;
+    $('sMax').textContent = (+ethers.utils.formatEther(max)).toFixed(4);
+    maxBetWei = max;
+    paintWager();
+    // note merah kalau vault kekecilan
+    const maxEth = +ethers.utils.formatEther(max);
+    const minNice = NET.key === 'MO' ? 10 : 0.005;
+    $('vaultnote').style.display = maxEth < minNice ? '' : 'none';
+  } catch (e) {}
+}
+
+async function refreshFeed() {
+  try {
+    const cur = await prov.getBlockNumber();
+    const logs = await prov.getLogs({ address: NET.flip, fromBlock: Math.max(0, cur - 60000), topics: [ethers.utils.id('Flipped(address,uint256,bool,uint256,uint256)')] });
+    const rows = logs.slice(-15).reverse().map(lg => {
+      const e = iface.parseLog(lg).args;
+      return `<div class="frow"><img src="assets/chog-portrait.webp"><span class="who">${e.player === account ? 'YOU' : short(e.player)}</span><span>${(+ethers.utils.formatEther(e.stake)).toFixed(3)} ${NET.symbol}</span><span class="res ${e.won ? 'w' : 'l'}">${e.won ? 'WIN ×2' : 'lost'}</span></div>`;
+    });
+    $('feed').innerHTML = rows.join('') || '<div style="text-align:center;font-weight:700;font-size:13px;color:var(--ink-soft);padding:12px">no flips yet — be the first 🪙</div>';
+  } catch (e) {}
+}
+
+// ---- coin animation (rAF) ----
+let rot = 0, spinning = false, pendingResult = null, spinId = 0;
+const coin = $('coin');
+function setRot(r) { rot = r; coin.style.transform = `rotateY(${r}deg)`; }
+function stopAllSpins() { spinId++; spinning = false; pendingResult = null; }
+function startSpin() {
+  stopAllSpins(); // matiin semua animasi lama dulu
+  const my = spinId;
+  spinning = true;
+  $('result').textContent = '';
+  $('result').className = 'result';
+  const t0 = performance.now();
+  const dur = 2400 + Math.random() * 600;
+  const from = rot, spins = 6 + Math.floor(Math.random() * 3);
+  const target = from + spins * 360;
+  (function frame(t) {
+    if (my !== spinId) return; // animasi ini udah dibatalin
+    const p = Math.min(1, (t - t0) / dur);
+    const e = 1 - Math.pow(1 - p, 3);
+    setRot(from + (target - from) * e);
+    if (p < 1) requestAnimationFrame(frame);
+    else if (pendingResult) landOn(pendingResult.won);
+  })(t0);
+}
+function landOn(won) {
+  const my = spinId;
+  const from = rot % 360;
+  // hasil harus nongol di sisi yang dipilih kalau menang (heads=0, tails=180)
+  const targetSide = won ? (side === 1 ? 0 : 180) : (side === 1 ? 180 : 0);
+  const delta = ((targetSide - from) % 360 + 360) % 360 + 360;
+  const t0 = performance.now();
+  const start = rot, dur = 1500;
+  (function frame(t) {
+    if (my !== spinId) return; // animasi ini udah dibatalin
+    const p = Math.min(1, (t - t0) / dur);
+    const e = 1 - Math.pow(1 - p, 3);
+    setRot(start + delta * e);
+    if (p < 1) requestAnimationFrame(frame);
+    else {
+      const r = $('result');
+      r.textContent = won ? 'YOU WIN 🏆' : 'YOU LOSE 💀';
+      r.className = 'result ' + (won ? 'win' : 'lose');
+      spinning = false;
+      pendingResult = null;
+      refreshStats(); refreshFeed();
+    }
+  })(t0);
+}
+
+$('flipBtn').onclick = async () => {
+  if (spinning) return;
+  if (!signer) return toast('Please connect your wallet first');
+  try {
+    toast('Please confirm in your wallet…');
+    // JANGAN spin dulu — tunggu tx beneran masuk chain
+    const c = new ethers.Contract(NET.flip, FLIP_ABI, signer);
+    const tx = await c.flip({ value: ethers.utils.parseEther(String(stake)), ...NET.gp() });
+    const rc = await tx.wait();
+    const ev = rc.events?.find(e => e.event === 'Flipped');
+    const won = ev ? ev.args.won : false;
+    // tx confirmed → baru mulai drama spin
+    startSpin();
+    await new Promise(r => setTimeout(r, Math.max(0, 2200)));
+    if (spinning) pendingResult = { won };
+    else landOn(won);
+  } catch (e) {
+    stopAllSpins();
+    toast('Failed: ' + (e.data?.message || e.message).slice(0, 60));
+  }
+};
+
+async function switchWalletChain() {
+  try {
+    await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: NET.chainId }] });
+  } catch (e) {
+    if (e.code === 4902) {
+      await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [{
+        chainId: NET.chainId, chainName: NET.name,
+        nativeCurrency: { name: NET.symbol === 'MON' ? 'Mon' : 'Ether', symbol: NET.symbol, decimals: 18 },
+        rpcUrls: [NET.rpc],
+      }]});
+    }
+  }
+}
+
+async function connect() {
+  if (!window.ethereum) return toast('Please install MetaMask 🦊');
+  try {
+    const accs = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    account = accs[0];
+    await switchWalletChain();
+    signer = new ethers.providers.Web3Provider(window.ethereum).getSigner();
+    $('connectBtn').style.display = 'none';
+    $('wchip').style.display = 'flex';
+    $('waddr').textContent = short(account);
+    toast('Wallet connected 🐴');
+    refreshFeed();
+  } catch (e) { toast('Connection failed — please try again'); }
+}
+$('connectBtn').onclick = connect;
+
+// FAQ
+$('faqBtn').onclick = () => { $('faqAddr').textContent = NET.flip; $('faqModal').classList.add('show'); };
+$('faqClose').onclick = () => $('faqModal').classList.remove('show');
+$('faqModal').onclick = e => { if (e.target === $('faqModal')) $('faqModal').classList.remove('show'); };
+
+setNet('RH');
+setInterval(() => { if (!document.hidden) { refreshStats(); refreshFeed(); } }, 12000);
+</script>
+</body>
+</html>
