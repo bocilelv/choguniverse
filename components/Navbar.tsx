@@ -42,10 +42,6 @@ export function Navbar() {
 
         {/* Desktop */}
         <div className="hidden sm:flex items-center gap-1">
-          <button aria-label="theme" onClick={toggle}
-            className="w-9 h-9 flex items-center justify-center rounded-lg border-2 border-ink bg-white text-base">
-            {dark ? '☀️' : '🌙'}
-          </button>
           {LINKS.map((l) => (
             <a key={l.href} href={l.href}
               className="font-bold text-sm px-3 py-1.5 rounded-lg hover:bg-cream2 transition-colors">
@@ -70,6 +66,10 @@ export function Navbar() {
               LOGIN
             </a>
           )}
+          <button aria-label="theme" onClick={toggle}
+            className="ml-2 w-9 h-9 flex items-center justify-center rounded-lg border-2 border-ink bg-white text-base">
+            {dark ? '☀️' : '🌙'}
+          </button>
         </div>
 
         {/* Burger (mobile) */}
@@ -82,10 +82,6 @@ export function Navbar() {
       {/* Mobile dropdown */}
       {open && (
         <div className="sm:hidden border-t-2 border-ink bg-cream px-3 py-3 flex flex-col gap-2">
-          <button aria-label="theme" onClick={toggle}
-            className="text-left font-black text-sm px-4 py-3 rounded-xl border-2 border-ink bg-white">
-            {dark ? '☀️ LIGHT MODE' : '🌙 DARK MODE'}
-          </button>
           {LINKS.map((l) => (
             <a key={l.href} href={l.href} onClick={() => setOpen(false)}
               className="font-black text-sm px-4 py-3 rounded-xl border-2 border-ink bg-white">
@@ -111,6 +107,10 @@ export function Navbar() {
               LOGIN
             </a>
           )}
+          <button aria-label="theme" onClick={toggle}
+            className="text-left font-black text-sm px-4 py-3 rounded-xl border-2 border-ink bg-white">
+            {dark ? '☀️ LIGHT MODE' : '🌙 DARK MODE'}
+          </button>
         </div>
       )}
     </nav>

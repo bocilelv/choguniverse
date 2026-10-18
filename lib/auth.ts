@@ -69,11 +69,24 @@ export const authOptions: NextAuthOptions = {
           }
         }
 
+        // LOGIN NORMAL: cari existing by provider id DULU (hindari unique duplikat),
+        // baru fallback ke email upsert
+        const byProvider = provider === 'discord'
+          ? await prisma.user.findUnique({ where: { discordId: providerId } }).catch(() => null)
+          : provider === 'twitter'
+            ? await prisma.user.findUnique({ where: { twitterId: providerId } }).catch(() => null)
+            : null
+        if (byProvider) {
+          await prisma.user.update({ where: { id: byProvider.id }, data })
+          return true
+        }
+
+        const email = user.email || `${provider}:${providerId}@chog.local`
         await prisma.user.upsert({
-          where: { email: user.email || `${account?.provider}:${account?.providerAccountId}@chog.local` },
+          where: { email },
           update: data,
           create: {
-            email: user.email || `${account?.provider}:${account?.providerAccountId}@chog.local`,
+            email,
             ...data,
           },
         })
@@ -84,9 +97,19 @@ export const authOptions: NextAuthOptions = {
       }
     },
     async jwt({ token, user, account }: any) {
-      // X OAuth 2.0 sering tidak mengirim email — pakai fallback stabil
+      // simpan provider info untuk resolve akun
+      if (account) {
+        token.provider = account.provider
+        token.providerAccountId = account.providerAccountId
+      }
       if (user && account) {
-        token.email = user.email || `${account.provider}:${account.providerAccountId}@chog.local`
+        // X OAuth 2.0 sering tidak mengirim email — resolve via provider id dulu
+        const byProvider = account.provider === 'discord'
+          ? await prisma.user.findUnique({ where: { discordId: account.providerAccountId } }).catch(() => null)
+          : account.provider === 'twitter'
+            ? await prisma.user.findUnique({ where: { twitterId: account.providerAccountId } }).catch(() => null)
+            : null
+        token.email = byProvider?.email || user.email || `${account.provider}:${account.providerAccountId}@chog.local`
         // LINK MODE: pertahankan email akun asli (yang di-link)
         try {
           const { cookies } = await import('next/headers')
@@ -100,19 +123,22 @@ export const authOptions: NextAuthOptions = {
       return token
     },
     async session({ session, token }) {
-      const email = session.user?.email || (token.email as string | undefined)
-      if (session.user && !session.user.email && email) {
-        session.user.email = email
+      let email = session.user?.email || (token.email as string | undefined)
+      let dbUser = email ? await prisma.user.findUnique({ where: { email } }).catch(() => null) : null
+      // fallback: session email basi (akun merged) -> resolve by provider id
+      if (!dbUser && token.providerAccountId) {
+        dbUser = (token.provider as string) === 'discord'
+          ? await prisma.user.findUnique({ where: { discordId: token.providerAccountId as string } }).catch(() => null)
+          : await prisma.user.findUnique({ where: { twitterId: token.providerAccountId as string } }).catch(() => null)
+        if (dbUser) email = dbUser.email
       }
-      if (email) {
-        const dbUser = await prisma.user.findUnique({ where: { email } })
-        if (dbUser) {
-          ;(session.user as any).id = dbUser.id
-          ;(session.user as any).discordId = dbUser.discordId
-          ;(session.user as any).twitterId = dbUser.twitterId
-          ;(session.user as any).twitterUsername = dbUser.twitterUsername
-          ;(session.user as any).discordUsername = dbUser.discordUsername
-        }
+      if (session.user && email) session.user.email = email
+      if (dbUser) {
+        ;(session.user as any).id = dbUser.id
+        ;(session.user as any).discordId = dbUser.discordId
+        ;(session.user as any).twitterId = dbUser.twitterId
+        ;(session.user as any).twitterUsername = dbUser.twitterUsername
+        ;(session.user as any).discordUsername = dbUser.discordUsername
       }
       return session
     },
