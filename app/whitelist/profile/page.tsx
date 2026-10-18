@@ -16,7 +16,7 @@ export default async function ProfilePage() {
         <div className="text-6xl mb-4">🔒</div>
         <h1 className="font-black text-2xl">LOGIN REQUIRED</h1>
         <p className="mt-2 font-bold text-sm text-ink/60">login to see your profile</p>
-        <a href="/login" className="inline-block mt-6 font-black text-sm bg-pink text-white border-2 border-ink rounded-xl px-6 py-3 shadow-[4px_4px_0_ink]">GO TO LOGIN →</a>
+        <a href="/whitelist/login" className="inline-block mt-6 font-black text-sm bg-pink text-white border-2 border-ink rounded-xl px-6 py-3 shadow-[4px_4px_0_ink]">GO TO LOGIN →</a>
       </main>
     )
   }
@@ -101,7 +101,7 @@ export default async function ProfilePage() {
         </div>
       ) : (
         <div className="rounded-2xl border-2 border-dashed border-ink/40 p-8 text-center font-bold text-ink/50">
-          no raffles entered yet — <a href="/raffles" className="text-pink underline">browse raffles</a>
+          no raffles entered yet — <a href="/whitelist/raffles" className="text-pink underline">browse raffles</a>
         </div>
       )}
     </main>

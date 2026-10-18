@@ -28,7 +28,7 @@ export function ConnectAccounts({ userId, hasDiscord, hasTwitter, discordUsernam
             </div>
           </div>
         ) : (
-          <button onClick={() => { setLinkCookie(); signIn('discord', { callbackUrl: '/profile' }) }}
+          <button onClick={() => { setLinkCookie(); signIn('discord', { callbackUrl: '/whitelist/profile' }) }}
             className="flex items-center gap-3 border-2 border-ink rounded-xl px-4 py-3 bg-[#5865F2] text-white shadow-[3px_3px_0_ink] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none">
             <span className="text-xl">🟣</span>
             <div className="text-left">
@@ -46,7 +46,7 @@ export function ConnectAccounts({ userId, hasDiscord, hasTwitter, discordUsernam
             </div>
           </div>
         ) : (
-          <button onClick={() => { setLinkCookie(); signIn('twitter', { callbackUrl: '/profile' }) }}
+          <button onClick={() => { setLinkCookie(); signIn('twitter', { callbackUrl: '/whitelist/profile' }) }}
             className="flex items-center gap-3 border-2 border-ink rounded-xl px-4 py-3 bg-ink text-white shadow-[3px_3px_0_ink] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none">
             <span className="text-xl">𝕏</span>
             <div className="text-left">

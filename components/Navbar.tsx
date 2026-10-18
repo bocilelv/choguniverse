@@ -4,8 +4,8 @@ import { useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 
 const LINKS = [
-  { href: '/profile', label: 'Profile' },
-  { href: '/admin', label: 'Admin' },
+  { href: '/whitelist/profile', label: 'Profile' },
+  { href: '/whitelist/admin', label: 'Admin' },
 ]
 
 export function Navbar() {
@@ -31,7 +31,7 @@ export function Navbar() {
           ))}
           {status === 'loading' ? null : session ? (
             <div className="flex items-center gap-2 ml-2 pl-3 border-l-2 border-ink/15">
-              <a href="/profile" className="flex items-center gap-2">
+              <a href="/whitelist/profile" className="flex items-center gap-2">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={session.user?.image || ''} alt="" className="w-8 h-8 rounded-full border-2 border-ink object-cover" />
                 <span className="font-black text-sm max-w-[120px] truncate">{session.user?.name}</span>
@@ -42,7 +42,7 @@ export function Navbar() {
               </button>
             </div>
           ) : (
-            <a href="/login"
+            <a href="/whitelist/login"
               className="ml-2 font-black text-sm bg-pink text-white border-2 border-ink rounded-xl px-4 py-2 shadow-[3px_3px_0_ink] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none">
               LOGIN
             </a>
@@ -67,7 +67,7 @@ export function Navbar() {
           ))}
           {session ? (
             <>
-              <a href="/profile" onClick={() => setOpen(false)}
+              <a href="/whitelist/profile" onClick={() => setOpen(false)}
                 className="flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-ink bg-cream2">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={session.user?.image || ''} alt="" className="w-9 h-9 rounded-full border-2 border-ink object-cover" />
@@ -79,7 +79,7 @@ export function Navbar() {
               </button>
             </>
           ) : (
-            <a href="/login" onClick={() => setOpen(false)}
+            <a href="/whitelist/login" onClick={() => setOpen(false)}
               className="text-center font-black text-sm px-4 py-3 rounded-xl border-2 border-ink bg-pink text-white">
               LOGIN
             </a>

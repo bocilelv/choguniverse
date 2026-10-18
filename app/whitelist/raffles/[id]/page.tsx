@@ -28,7 +28,7 @@ export default async function RaffleDetail({ params }: { params: { id: string } 
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-8">
-      <a href="/" className="inline-block font-black text-xs mb-4 hover:text-pink">← BACK</a>
+      <a href="/whitelist" className="inline-block font-black text-xs mb-4 hover:text-pink">← BACK</a>
 
       <div className="rounded-3xl border-2 border-ink overflow-hidden bg-white shadow-[6px_6px_0_ink]">
         <div className="relative aspect-video bg-cream2">

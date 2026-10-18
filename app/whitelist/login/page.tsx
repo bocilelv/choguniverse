@@ -10,13 +10,13 @@ export default function LoginPage() {
       <p className="mt-3 font-bold text-sm text-ink/60">login to enter whitelist raffles</p>
       <div className="mt-8 space-y-3">
         <button
-          onClick={() => signIn('discord', { callbackUrl: '/profile' })}
+          onClick={() => signIn('discord', { callbackUrl: '/whitelist/profile' })}
           className="w-full font-black text-sm bg-[#5865F2] text-white border-2 border-ink rounded-xl px-6 py-4 shadow-[4px_4px_0_ink] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
         >
           CONTINUE WITH DISCORD
         </button>
         <button
-          onClick={() => signIn('twitter', { callbackUrl: '/profile' })}
+          onClick={() => signIn('twitter', { callbackUrl: '/whitelist/profile' })}
           className="w-full font-black text-sm bg-ink text-white border-2 border-ink rounded-xl px-6 py-4 shadow-[4px_4px_0_ink] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
         >
           𝕏 CONTINUE WITH X

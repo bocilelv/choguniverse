@@ -3,6 +3,7 @@ const nextConfig = {
   // URL bersih tanpa .html — /map, /chogffle, /chogping, /chogflip
   async rewrites() {
     return [
+      { source: '/', destination: '/home.html' },
       { source: '/home', destination: '/home.html' },
       { source: '/map', destination: '/map.html' },
       { source: '/chogffle', destination: '/chogffle.html' },
@@ -16,6 +17,12 @@ const nextConfig = {
   // file .html asli di-redirect ke versi bersih biar ga dobel index
   async redirects() {
     return [
+      { source: '/raffles', destination: '/whitelist/raffles', permanent: true },
+      { source: '/raffles/:path*', destination: '/whitelist/raffles/:path*', permanent: true },
+      { source: '/profile', destination: '/whitelist/profile', permanent: true },
+      { source: '/admin', destination: '/whitelist/admin', permanent: true },
+      { source: '/login', destination: '/whitelist/login', permanent: true },
+      { source: '/collab', destination: '/whitelist/collab', permanent: true },
       { source: '/home.html', destination: '/home', permanent: true },
       { source: '/map.html', destination: '/map', permanent: true },
       { source: '/chogffle.html', destination: '/chogffle', permanent: true },
