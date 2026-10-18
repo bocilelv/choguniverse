@@ -2,7 +2,7 @@ import { Providers } from '@/components/Providers'
 import './globals.css'
 
 export const metadata = {
-  title: 'CHOGLIST — Whitelist Raffles',
+  title: 'CHOGUNIVERSE — Whitelist Raffles',
   description: 'gated whitelist raffles for the choguniverse',
 }
 

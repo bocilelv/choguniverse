@@ -6,7 +6,7 @@ export default function LoginPage() {
   return (
     <main className="max-w-md mx-auto px-4 py-16 text-center">
       <div className="text-6xl mb-4">🐴</div>
-      <h1 className="font-black text-3xl">JOIN THE<br /><span className="text-pink">CHOGLIST</span></h1>
+      <h1 className="font-black text-3xl">JOIN THE<br /><span className="text-pink">CHOGUNIVERSE</span></h1>
       <p className="mt-3 font-bold text-sm text-ink/60">login to enter whitelist raffles</p>
       <div className="mt-8 space-y-3">
         <button

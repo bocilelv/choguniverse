@@ -38,7 +38,7 @@ export default function CollabPage() {
         <div className="text-6xl mb-4">🤝</div>
         <h1 className="font-black text-2xl">REQUEST SENT!</h1>
         <p className="mt-2 font-bold text-sm text-ink/60">we got your collab pitch — check your DMs / mentions soon</p>
-        <a href="/" className="inline-block mt-6 font-black text-sm bg-pink text-white border-2 border-ink rounded-xl px-6 py-3 shadow-[4px_4px_0_ink]">← BACK TO CHOGLIST</a>
+        <a href="/" className="inline-block mt-6 font-black text-sm bg-pink text-white border-2 border-ink rounded-xl px-6 py-3 shadow-[4px_4px_0_ink]">← BACK TO CHOGUNIVERSE</a>
       </main>
     )
   }

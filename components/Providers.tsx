@@ -10,7 +10,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <Navbar />
       {children}
       <footer className="border-t-2 border-ink/10 mt-16 py-6 text-center text-xs font-bold text-ink/40">
-        CHOGLIST · choguniverse whitelist platform · vibecoded by @bocilelv
+        CHOGUNIVERSE · choguniverse whitelist platform · vibecoded by @bocilelv
       </footer>
       <Toaster richColors position="top-center" toastOptions={{ style: { fontWeight: 'bold' } }} />
     </SessionProvider>
