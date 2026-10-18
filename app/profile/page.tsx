@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { RaffleCard } from '@/components/RaffleCard'
 import { ConnectAccounts } from './ConnectAccounts'
+import { WalletForms } from './WalletForms'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,18 +26,18 @@ export default async function ProfilePage() {
   })
   if (!user) return <main className="p-8 text-center font-bold">user not found — re-login</main>
 
-  const raffles = user.entries.map(e => e.raffle)
+  const raffles = user.entries.map((e) => e.raffle)
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-8">
       {/* USER CARD */}
-      <div className="rounded-3xl border-2 border-ink bg-white p-6 shadow-[6px_6px_0_ink] flex items-center gap-5">
+      <div className="rounded-3xl border-2 border-ink bg-white p-5 sm:p-6 shadow-[6px_6px_0_ink] flex items-center gap-5">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={user.image || '/placeholder.svg'} alt="" className="w-20 h-20 rounded-2xl border-2 border-ink object-cover" />
+        <img src={user.image || ''} alt="" className="w-20 h-20 rounded-2xl border-2 border-ink object-cover" />
         <div className="min-w-0">
           <h1 className="font-black text-2xl truncate">{user.name || 'chog'}</h1>
           <p className="text-xs font-bold text-ink/50 truncate">{user.email}</p>
-          <div className="mt-1 flex flex-wrap gap-2">
+          <div className="mt-1.5 flex flex-wrap gap-2">
             {user.discordId && <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-[#5865F2] text-white border border-ink">DISCORD ✓</span>}
             {user.twitterId && <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-ink text-white border border-ink">X ✓</span>}
             <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-gold border border-ink">{user.entries.length} ENTRIES</span>
@@ -46,13 +47,22 @@ export default async function ProfilePage() {
 
       {/* CONNECT ACCOUNTS */}
       <ConnectAccounts
+        userId={user.id}
         hasDiscord={!!user.discordId}
         hasTwitter={!!user.twitterId}
         discordUsername={user.discordUsername}
         twitterUsername={user.twitterUsername}
       />
 
-      {/* TWITTER / DISCORD DATA */}
+      {/* WALLETS */}
+      <WalletForms
+        evmAddress={user.evmAddress}
+        suiAddress={user.suiAddress}
+        btcAddress={user.btcAddress}
+        injAddress={user.injAddress}
+      />
+
+      {/* SOCIAL DATA */}
       <div className="mt-6 grid sm:grid-cols-2 gap-4">
         <div className="rounded-2xl border-2 border-ink bg-cream2 p-4">
           <div className="font-black text-xs text-ink/50 uppercase mb-2">X / Twitter</div>
@@ -78,7 +88,9 @@ export default async function ProfilePage() {
       <h2 className="font-black text-xl mt-10 mb-4">MY RAFFLES ({raffles.length})</h2>
       {raffles.length ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          {raffles.map(r => <RaffleCard key={r.id} raffle={{ ...r, endDate: r.endDate.toISOString() }} />)}
+          {raffles.map((r) => (
+            <RaffleCard key={r.id} raffle={{ ...r, startDate: r.startDate.toISOString(), endDate: r.endDate.toISOString() }} />
+          ))}
         </div>
       ) : (
         <div className="rounded-2xl border-2 border-dashed border-ink/40 p-8 text-center font-bold text-ink/50">

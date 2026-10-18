@@ -10,32 +10,37 @@ datasource db {
 model User {
   id               String   @id @default(cuid())
   name             String?
-  email            String?  @unique
+  email            String   @unique
   image            String?
   discordId        String?  @unique
   discordUsername  String?
   twitterId        String?  @unique
   twitterUsername  String?
+  evmAddress       String?
+  suiAddress       String?
+  btcAddress       String?
+  injAddress       String?
   createdAt        DateTime @default(now())
   entries          Entry[]
 }
 
 model Raffle {
-  id                  String   @id @default(cuid())
-  title               String
-  description         String
-  image               String
-  endDate             DateTime
-  totalSpots          Int
-  entriesCount        Int      @default(0)
+  id                   String   @id @default(cuid())
+  title                String
+  description          String?
+  image                String
+  blockchain           String   @default("MONAD")
+  startDate            DateTime @default(now())
+  endDate              DateTime
+  totalSpots           Int      @default(100)
+  entriesCount         Int      @default(0)
   twitterFollowRequired Boolean @default(true)
-  twitterHandle       String   @default("@chog")
-  discordRequired     Boolean  @default(true)
-  discordInvite      String   @default("https://discord.gg/chog")
-  blockchain          String   @default("MONAD")
-  status              String   @default("LIVE")
-  createdAt           DateTime @default(now())
-  entries             Entry[]
+  twitterHandle        String   @default("chog")
+  discordRequired      Boolean  @default(true)
+  discordInvite        String   @default("https://discord.gg/chog")
+  status               String   @default("LIVE")
+  createdAt            DateTime @default(now())
+  entries              Entry[]
 }
 
 model Entry {
@@ -43,9 +48,10 @@ model Entry {
   userId    String
   raffleId  String
   createdAt DateTime @default(now())
-  isValid   Boolean  @default(false)
-  user      User     @relation(fields: [userId], references: [id])
-  raffle    Raffle   @relation(fields: [raffleId], references: [id])
+  isValid   Boolean  @default(true)
+  isWinner  Boolean  @default(false)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  raffle    Raffle   @relation(fields: [raffleId], references: [id], onDelete: Cascade)
 
   @@unique([userId, raffleId])
 }

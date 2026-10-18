@@ -5,68 +5,93 @@ import { EnterButton } from './EnterButton'
 export const dynamic = 'force-dynamic'
 
 export default async function RaffleDetail({ params }: { params: { id: string } }) {
-  const r = await prisma.raffle.findUnique({ where: { id: params.id } })
+  const r = await prisma.raffle.findUnique({
+    where: { id: params.id },
+    include: {
+      entries: {
+        where: { isWinner: true },
+        include: { user: true },
+      },
+    },
+  })
   if (!r) notFound()
 
-  const ms = r.endDate.getTime() - Date.now()
-  const ended = r.status === 'ENDED' || ms <= 0
-  const timeStr = ended ? 'ENDED' : (ms > 86400000
-    ? `${Math.floor(ms / 86400000)}d ${Math.floor((ms % 86400000) / 3600000)}h left`
-    : `${Math.floor(ms / 3600000)}h ${Math.floor((ms % 3600000) / 60000)}m left`)
+  const now = Date.now()
+  const start = r.startDate.getTime()
+  const end = r.endDate.getTime()
+  const upcoming = start > now
+  const ended = end <= now
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-8">
-      <div className="rounded-3xl border-2 border-ink bg-white overflow-hidden shadow-[6px_6px_0_ink]">
-        <div className="relative aspect-[16/9] bg-cream2">
+      <a href="/raffles" className="inline-block font-black text-xs mb-4 hover:text-pink">← BACK TO RAFFLES</a>
+
+      <div className="rounded-3xl border-2 border-ink overflow-hidden bg-white shadow-[6px_6px_0_ink]">
+        <div className="relative aspect-video bg-cream2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={r.image} alt={r.title} className="w-full h-full object-cover" />
-          <span className={`absolute top-3 left-3 text-xs font-black px-3 py-1.5 rounded-lg border-2 border-ink ${ended ? 'bg-ink text-cream' : 'bg-pink text-white'}`}>
-            {ended ? 'ENDED' : '● LIVE'}
+          <span className={`absolute top-3 left-3 text-xs font-black px-3 py-1.5 rounded-lg border-2 border-ink ${upcoming ? 'bg-gold' : ended ? 'bg-ink text-cream' : 'bg-pink text-white'}`}>
+            {upcoming ? 'SOON' : ended ? 'ENDED' : '● LIVE'}
           </span>
-          <span className="absolute top-3 right-3 text-xs font-black px-3 py-1.5 rounded-lg border-2 border-ink bg-gold">
+          <span className="absolute top-3 right-3 text-xs font-black px-3 py-1.5 rounded-lg bg-white border-2 border-ink">
             {r.blockchain}
           </span>
         </div>
-        <div className="p-6">
-          <h1 className="font-black text-2xl leading-tight">{r.title}</h1>
-          <p className="mt-3 font-semibold text-sm text-ink/70 leading-relaxed">{r.description}</p>
 
-          <div className="mt-6 grid grid-cols-3 gap-2 text-center border-2 border-ink rounded-2xl overflow-hidden">
-            <div className="p-3 bg-cream2">
-              <div className="text-[10px] font-black text-ink/50 uppercase">Ends in</div>
-              <div className={`font-black ${ended ? 'text-ink/40' : 'text-pink'}`}>{timeStr}</div>
+        <div className="p-5 sm:p-6">
+          <h1 className="font-black text-2xl">{r.title}</h1>
+          <p className="mt-2 font-bold text-sm text-ink/70">{r.description}</p>
+
+          <div className="mt-5 grid grid-cols-3 gap-3">
+            <div className="rounded-xl border-2 border-ink bg-cream2 p-3 text-center">
+              <div className="font-black text-[10px] text-ink/50 uppercase">{upcoming ? 'Starts in' : ended ? 'Ended' : 'Ends in'}</div>
+              <div className="font-black text-sm mt-1 tabular-nums" data-countdown data-end={r.endDate.toISOString()} data-start={r.startDate.toISOString()}>
+                {upcoming ? new Date(r.startDate).toLocaleString() : new Date(r.endDate).toLocaleString()}
+              </div>
             </div>
-            <div className="p-3 bg-cream2 border-x-2 border-ink">
-              <div className="text-[10px] font-black text-ink/50 uppercase">Entries</div>
-              <div className="font-black">{r.entriesCount}</div>
+            <div className="rounded-xl border-2 border-ink bg-cream2 p-3 text-center">
+              <div className="font-black text-[10px] text-ink/50 uppercase">Entries</div>
+              <div className="font-black text-xl mt-1">{r.entriesCount}</div>
             </div>
-            <div className="p-3 bg-cream2">
-              <div className="text-[10px] font-black text-ink/50 uppercase">Spots</div>
-              <div className="font-black">{r.totalSpots}</div>
+            <div className="rounded-xl border-2 border-ink bg-cream2 p-3 text-center">
+              <div className="font-black text-[10px] text-ink/50 uppercase">Spots</div>
+              <div className="font-black text-xl mt-1">{r.totalSpots}</div>
             </div>
           </div>
 
-          {/* REQUIREMENTS */}
-          <div className="mt-6">
-            <div className="font-black text-sm mb-2">REQUIREMENTS</div>
+          <div className="mt-5 rounded-2xl border-2 border-ink bg-cream2 p-4">
+            <div className="font-black text-[10px] text-ink/50 uppercase mb-2">Requirements</div>
             <div className="space-y-2">
               {r.twitterFollowRequired && (
-                <div className="flex items-center gap-2 border-2 border-ink rounded-xl px-3 py-2 bg-cream2 text-sm font-bold">
-                  <span>✅</span> Follow <span className="text-purple">{r.twitterHandle}</span> on X
+                <div className="flex items-center gap-2 font-bold text-sm">
+                  <span className="text-green-600">✅</span> Follow <a href={`https://x.com/${r.twitterHandle}`} target="_blank" rel="noopener" className="text-pink underline">@{r.twitterHandle}</a> on X
                 </div>
               )}
               {r.discordRequired && (
-                <div className="flex items-center gap-2 border-2 border-ink rounded-xl px-3 py-2 bg-cream2 text-sm font-bold">
-                  <span>✅</span> Join the <span className="text-purple">Chog Discord</span>
+                <div className="flex items-center gap-2 font-bold text-sm">
+                  <span className="text-green-600">✅</span> Join the <a href={r.discordInvite} target="_blank" rel="noopener" className="text-pink underline">Chog Discord</a>
                 </div>
               )}
             </div>
-            <p className="mt-2 text-[11px] font-bold text-ink/50">requirements are verified when you enter — mock mode: auto-pass</p>
+            <p className="mt-2 text-[11px] font-bold text-ink/40">requirements are verified when you enter — mock mode: auto-pass</p>
           </div>
 
-          <div className="mt-6">
-            <EnterButton raffleId={r.id} ended={ended} />
+          <div className="mt-5">
+            <EnterButton raffleId={r.id} ended={ended || upcoming} upcoming={upcoming} />
           </div>
+
+          {r.entries.length > 0 && (
+            <div className="mt-6 rounded-2xl border-2 border-ink bg-gold/30 p-4">
+              <div className="font-black text-[10px] text-ink/60 uppercase mb-2">🏆 Winners ({r.entries.length}/{r.totalSpots})</div>
+              <div className="flex flex-wrap gap-2">
+                {r.entries.map((e) => (
+                  <span key={e.id} className="text-xs font-black px-2.5 py-1.5 rounded-lg border-2 border-ink bg-white">
+                    {e.user.twitterUsername ? '@' + e.user.twitterUsername : e.user.name || e.user.email.slice(0, 12)}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </main>

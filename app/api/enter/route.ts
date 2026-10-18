@@ -2,36 +2,35 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { checkIfUserFollows } from '@/lib/twitter'
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
-  if (!session?.user?.email) {
-    return NextResponse.json({ message: 'login first' }, { status: 401 })
-  }
+  if (!session?.user?.email) return NextResponse.json({ message: 'login first' }, { status: 401 })
+
   const { raffleId } = await req.json()
   if (!raffleId) return NextResponse.json({ message: 'raffleId required' }, { status: 400 })
 
   const user = await prisma.user.findUnique({ where: { email: session.user.email } })
   const raffle = await prisma.raffle.findUnique({ where: { id: raffleId } })
   if (!user || !raffle) return NextResponse.json({ message: 'not found' }, { status: 404 })
-  if (raffle.endDate.getTime() < Date.now() || raffle.status === 'ENDED') {
-    return NextResponse.json({ message: 'raffle ended' }, { status: 400 })
-  }
+
+  if (raffle.endDate <= new Date()) return NextResponse.json({ message: 'raffle already ended' }, { status: 400 })
+  if (raffle.startDate > new Date()) return NextResponse.json({ message: 'raffle not started yet' }, { status: 400 })
 
   const existing = await prisma.entry.findUnique({ where: { userId_raffleId: { userId: user.id, raffleId } } })
-  if (existing) return NextResponse.json({ message: 'already entered' }, { status: 400 })
+  if (existing) return NextResponse.json({ message: 'already entered this raffle' }, { status: 400 })
 
-  // MOCK requirement check — anggap twitter follow = true (testing mode)
-  // TODO: real follow check via API when ready
-  const twitterOk = true
-  const discordOk = true
-  const isValid = twitterOk && discordOk
+  // Requirement check (mock dulu — lihat lib/twitter.ts untuk ganti ke X API)
+  if (raffle.twitterFollowRequired) {
+    const follows = await checkIfUserFollows(raffle.twitterHandle, 'mock-token')
+    if (!follows) return NextResponse.json({ message: `follow @${raffle.twitterHandle} on X first` }, { status: 403 })
+  }
 
-  await prisma.entry.create({ data: { userId: user.id, raffleId, isValid } })
-  const updated = await prisma.raffle.update({
-    where: { id: raffleId },
-    data: { entriesCount: { increment: 1 } },
-  })
+  await prisma.$transaction([
+    prisma.entry.create({ data: { userId: user.id, raffleId, isValid: true } }),
+    prisma.raffle.update({ where: { id: raffleId }, data: { entriesCount: { increment: 1 } } }),
+  ])
 
-  return NextResponse.json({ message: "You're in! 🎟️", entriesCount: updated.entriesCount })
+  return NextResponse.json({ ok: true })
 }

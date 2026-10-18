@@ -2,44 +2,90 @@
 
 import { useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
-import Link from 'next/link'
+
+const LINKS = [
+  { href: '/raffles', label: 'Raffles' },
+  { href: '/profile', label: 'Profile' },
+  { href: '/admin', label: 'Admin' },
+]
 
 export function Navbar() {
-  const { data: session } = useSession()
-  const [menu, setMenu] = useState(false)
+  const { data: session, status } = useSession()
+  const [open, setOpen] = useState(false)
+
   return (
-    <nav className="border-b-2 border-ink bg-cream sticky top-0 z-40">
-      <div className="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="w-9 h-9 rounded-lg border-2 border-ink bg-purple flex items-center justify-center text-lg">🐴</span>
-          <span className="font-black text-lg tracking-tight">CHOG<span className="text-pink">LIST</span></span>
-        </Link>
-        <div className="flex items-center gap-1 sm:gap-3">
-          <Link href="/raffles" className="hidden sm:inline-block font-bold text-sm px-3 py-2 hover:text-pink">Raffles</Link>
-          <Link href="/profile" className="hidden sm:inline-block font-bold text-sm px-3 py-2 hover:text-pink">Profile</Link>
-          <Link href="/admin" className="hidden sm:inline-block font-bold text-sm px-3 py-2 hover:text-pink">Admin</Link>
-          {session?.user ? (
-            <div className="relative">
-              <button onClick={() => setMenu(!menu)} className="flex items-center gap-2 border-2 border-ink rounded-full pl-1 pr-3 py-1 bg-white shadow-[2px_2px_0_ink]">
+    <nav className="sticky top-0 z-50 border-b-2 border-ink bg-cream/95 backdrop-blur">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 h-14 flex items-center justify-between gap-2">
+        <a href="/" className="flex items-center gap-1 font-black text-base sm:text-lg shrink-0">
+          <span className="text-xl sm:text-2xl">🐴</span>
+          <span>CHOG</span><span className="text-pink">LIST</span>
+        </a>
+
+        {/* Desktop */}
+        <div className="hidden sm:flex items-center gap-1">
+          {LINKS.map((l) => (
+            <a key={l.href} href={l.href}
+              className="font-bold text-sm px-3 py-1.5 rounded-lg hover:bg-cream2 transition-colors">
+              {l.label}
+            </a>
+          ))}
+          {status === 'loading' ? null : session ? (
+            <div className="flex items-center gap-2 ml-2 pl-3 border-l-2 border-ink/15">
+              <a href="/profile" className="flex items-center gap-2">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={session.user.image || '/placeholder.svg'} alt="" className="w-7 h-7 rounded-full border border-ink object-cover" />
-                <span className="font-bold text-xs max-w-[90px] truncate">{session.user.name || 'chog'}</span>
-                <span className="text-[10px]">▾</span>
+                <img src={session.user?.image || ''} alt="" className="w-8 h-8 rounded-full border-2 border-ink object-cover" />
+                <span className="font-black text-sm max-w-[120px] truncate">{session.user?.name}</span>
+              </a>
+              <button onClick={() => signOut({ callbackUrl: '/' })}
+                className="font-bold text-xs px-2.5 py-1.5 rounded-lg border-2 border-ink bg-white hover:bg-pink hover:text-white transition-colors">
+                LOGOUT
               </button>
-              {menu && (
-                <div className="absolute right-0 mt-2 w-44 bg-white border-2 border-ink rounded-xl shadow-[4px_4px_0_ink] overflow-hidden">
-                  <Link href="/profile" className="block px-4 py-2.5 font-bold text-sm hover:bg-gold" onClick={() => setMenu(false)}>Profile</Link>
-                  <button onClick={() => signOut()} className="block w-full text-left px-4 py-2.5 font-bold text-sm hover:bg-gold">Sign out</button>
-                </div>
-              )}
             </div>
           ) : (
-            <Link href="/login" className="font-black text-xs bg-pink text-white border-2 border-ink rounded-xl px-4 py-2 shadow-[3px_3px_0_ink] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none">
+            <a href="/login"
+              className="ml-2 font-black text-sm bg-pink text-white border-2 border-ink rounded-xl px-4 py-2 shadow-[3px_3px_0_ink] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none">
               LOGIN
-            </Link>
+            </a>
           )}
         </div>
+
+        {/* Burger (mobile) */}
+        <button aria-label="menu" onClick={() => setOpen(!open)}
+          className="sm:hidden w-10 h-10 flex items-center justify-center rounded-lg border-2 border-ink bg-white text-xl font-black">
+          {open ? '✕' : '☰'}
+        </button>
       </div>
+
+      {/* Mobile dropdown */}
+      {open && (
+        <div className="sm:hidden border-t-2 border-ink bg-cream px-3 py-3 flex flex-col gap-2">
+          {LINKS.map((l) => (
+            <a key={l.href} href={l.href} onClick={() => setOpen(false)}
+              className="font-black text-sm px-4 py-3 rounded-xl border-2 border-ink bg-white">
+              {l.label}
+            </a>
+          ))}
+          {session ? (
+            <>
+              <a href="/profile" onClick={() => setOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-ink bg-cream2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={session.user?.image || ''} alt="" className="w-9 h-9 rounded-full border-2 border-ink object-cover" />
+                <span className="font-black text-sm truncate">{session.user?.name}</span>
+              </a>
+              <button onClick={() => signOut({ callbackUrl: '/' })}
+                className="font-black text-sm px-4 py-3 rounded-xl border-2 border-ink bg-ink text-white">
+                LOGOUT
+              </button>
+            </>
+          ) : (
+            <a href="/login" onClick={() => setOpen(false)}
+              className="text-center font-black text-sm px-4 py-3 rounded-xl border-2 border-ink bg-pink text-white">
+              LOGIN
+            </a>
+          )}
+        </div>
+      )}
     </nav>
   )
 }

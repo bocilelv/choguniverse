@@ -16,7 +16,7 @@ export default async function Home() {
       <section className="relative rounded-3xl border-2 border-ink overflow-hidden mb-10 shadow-[6px_6px_0_ink]">
         <div className="relative aspect-[16/7]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/choglist-hero.webp" alt="chogs waiting for whitelist" className="w-full h-full object-cover" />
+          <img src="/choglist-hero.webp" alt="chogs waiting for whitelist" className="w-full h-full object-contain bg-cream" />
           <div className="absolute inset-0 bg-gradient-to-r from-cream/90 via-cream/40 to-transparent" />
           <div className="absolute top-6 left-6 sm:top-8 sm:left-10">
             <h1 className="font-black text-3xl sm:text-5xl tracking-tight leading-none drop-shadow-sm">
