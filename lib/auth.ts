@@ -43,9 +43,23 @@ export const authOptions: NextAuthOptions = {
         return true
       }
     },
+    async jwt({ token, user, account }) {
+      // X OAuth 2.0 sering tidak mengirim email — pakai fallback stabil
+      if (user && account) {
+        token.email = user.email || `${account.provider}:${account.providerAccountId}@chog.local`
+      }
+      if (token.email && !user) {
+        // keep existing token email on refresh
+      }
+      return token
+    },
     async session({ session, token }) {
-      if (session.user?.email) {
-        const dbUser = await prisma.user.findUnique({ where: { email: session.user.email } })
+      const email = session.user?.email || (token.email as string | undefined)
+      if (session.user && !session.user.email && email) {
+        session.user.email = email
+      }
+      if (email) {
+        const dbUser = await prisma.user.findUnique({ where: { email } })
         if (dbUser) {
           ;(session.user as any).id = dbUser.id
           ;(session.user as any).discordId = dbUser.discordId
