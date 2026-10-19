@@ -34,7 +34,10 @@ function toLocalInput(iso: string) {
 
 export function AdminClient({ raffles }: { raffles: Raffle[] }) {
   const router = useRouter()
-  const [tab, setTab] = useState<'list' | 'create'>('list')
+  const [tab, setTab] = useState<'list' | 'create' | 'users'>('list')
+  const [users, setUsers] = useState<any[]>([])
+  const [myRole, setMyRole] = useState<string>('MOD')
+  const [modEmail, setModEmail] = useState('')
   const [form, setForm] = useState({ ...EMPTY_FORM })
   const [editId, setEditId] = useState<string | null>(null)
   const [expanded, setExpanded] = useState<string | null>(null)
@@ -95,6 +98,31 @@ export function AdminClient({ raffles }: { raffles: Raffle[] }) {
     } catch (e: any) { toast.error(e.message) } finally { setBusy(false) }
   }
 
+  const loadUsers = async () => {
+    try {
+      const res = await fetch('/api/admin/users')
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message)
+      setUsers(data.users || [])
+      setMyRole(data.me || 'MOD')
+    } catch (e: any) { toast.error(e.message) }
+  }
+
+  const modAction = async (email: string, action: 'promote' | 'demote') => {
+    setBusy(true)
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, action }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message)
+      toast.success(action === 'promote' ? 'Moderator added ✓' : 'Moderator removed')
+      loadUsers()
+    } catch (e: any) { toast.error(e.message) } finally { setBusy(false) }
+  }
+
   const startEdit = (r: Raffle) => {
     setEditId(r.id); setTab('create')
     setForm({
@@ -120,6 +148,10 @@ export function AdminClient({ raffles }: { raffles: Raffle[] }) {
         <button onClick={() => { setTab('create'); setEditId(null); setForm({ ...EMPTY_FORM }) }}
           className={`font-black text-xs px-4 py-2 rounded-xl border-2 border-ink ${tab === 'create' ? 'bg-ink text-cream' : 'bg-white'}`}>
           + NEW RAFFLE
+        </button>
+        <button onClick={() => { setTab('users'); loadUsers() }}
+          className={`font-black text-xs px-4 py-2 rounded-xl border-2 border-ink ${tab === 'users' ? 'bg-ink text-cream' : 'bg-white'}`}>
+          USERS
         </button>
       </div>
 
@@ -177,6 +209,45 @@ export function AdminClient({ raffles }: { raffles: Raffle[] }) {
               </div>
             )
           })}
+        </div>
+      )}
+
+      {tab === 'users' && (
+        <div className="rounded-2xl border-2 border-ink bg-white p-5 shadow-[4px_4px_0_ink]">
+          <h2 className="font-black text-lg mb-1">USERS & ROLES</h2>
+          <p className="text-[11px] font-bold text-ink/40 mb-4">
+            your role: <b>{myRole}</b> — {myRole === 'OWNER' ? 'you can promote/demote moderators by email' : 'only the owner can manage roles'}
+          </p>
+          {myRole === 'OWNER' && (
+            <div className="flex flex-wrap gap-2 mb-5">
+              <input value={modEmail} onChange={(e) => setModEmail(e.target.value)} placeholder="user email (they must login once first)"
+                className="flex-1 min-w-[220px] font-bold text-sm border-2 border-ink rounded-xl px-3 py-2.5 bg-cream2 focus:outline-none focus:bg-white" />
+              <button onClick={() => modEmail && modAction(modEmail, 'promote')} disabled={busy}
+                className="font-black text-xs bg-pink text-white border-2 border-ink rounded-xl px-4 py-2.5 shadow-[3px_3px_0_ink] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50">
+                + MAKE MODERATOR
+              </button>
+            </div>
+          )}
+          <div className="space-y-2">
+            {users.length === 0 && <div className="text-xs font-bold text-ink/40 p-2">loading users…</div>}
+            {users.map((u: any) => (
+              <div key={u.id} className="flex items-center gap-3 border-2 border-ink/15 rounded-xl px-3 py-2.5">
+                <div className="min-w-0 flex-1">
+                  <div className="font-black text-sm truncate">{u.name || u.email}</div>
+                  <div className="text-[11px] font-bold text-ink/50 truncate">{u.email}</div>
+                </div>
+                <span className={`text-[10px] font-black px-2 py-1 rounded border-2 ${u.role === 'OWNER' ? 'bg-gold border-ink' : u.role === 'MOD' ? 'bg-pink text-white border-ink' : 'bg-cream2 border-ink/30'}`}>
+                  {u.role}
+                </span>
+                {myRole === 'OWNER' && u.role === 'USER' && (
+                  <button onClick={() => modAction(u.email, 'promote')} className="font-black text-[10px] px-2.5 py-1.5 rounded-lg border-2 border-ink bg-gold">+ MOD</button>
+                )}
+                {myRole === 'OWNER' && u.role === 'MOD' && (
+                  <button onClick={() => modAction(u.email, 'demote')} className="font-black text-[10px] px-2.5 py-1.5 rounded-lg border-2 border-ink bg-white">REMOVE</button>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
