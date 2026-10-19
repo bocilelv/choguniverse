@@ -2,3 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+
+/* ==== background pattern (chog doodles) ==== */
+body {
+  background-image: url('/assets/bg-pattern.webp');
+  background-size: 520px;
+  background-color: #FBF3DF;
+}
