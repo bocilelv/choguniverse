@@ -13,7 +13,8 @@ export default async function ProfilePage() {
   if (!session?.user?.email) {
     return (
       <main className="max-w-md mx-auto px-4 py-16 text-center">
-        <div className="text-6xl mb-4">🔒</div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/assets/profile-art.webp" alt="chog lock globe" className="w-36 h-36 mx-auto rounded-2xl border-2 border-ink mb-4" />
         <h1 className="font-black text-2xl">LOGIN REQUIRED</h1>
         <p className="mt-2 font-bold text-sm text-ink/60">login to see your profile</p>
         <a href="/whitelist/login" className="inline-block mt-6 font-black text-sm bg-pink text-white border-2 border-ink rounded-xl px-6 py-3 shadow-[4px_4px_0_ink]">GO TO LOGIN →</a>
