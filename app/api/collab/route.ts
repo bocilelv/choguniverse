@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 // Collab request -> Discord webhook (role ping + detail)
-const WEBHOOK_URL = process.env.COLLAB_WEBHOOK_URL || 'https://discord.com/api/webhooks/1561397529990660246/REMOVED_WEBHOOK_SECRET'
-const ROLE_ID = process.env.COLLAB_ROLE_ID || '1561397910338408489'
+const WEBHOOK_URL = process.env.COLLAB_WEBHOOK_URL || ''
+const ROLE_ID = process.env.COLLAB_ROLE_ID || ''
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,6 +12,9 @@ export async function POST(req: NextRequest) {
     const contact = String(body.contact || '').trim().slice(0, 200)
     if (!name || !message || !contact) {
       return NextResponse.json({ message: 'name, message & contact are required' }, { status: 400 })
+    }
+    if (!WEBHOOK_URL) {
+      return NextResponse.json({ message: 'collab webhook not configured' }, { status: 500 })
     }
 
     const res = await fetch(WEBHOOK_URL, {
