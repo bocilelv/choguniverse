@@ -9,10 +9,43 @@ export const authOptions: NextAuthOptions = {
     DiscordProvider({
       clientId: process.env.DISCORD_CLIENT_ID || '',
       clientSecret: process.env.DISCORD_CLIENT_SECRET || '',
-      // Discord sekarang mengirim metadata OIDC pada token response.
-      // Tetapkan issuer resmi agar openid-client dapat memvalidasinya,
-      // tetapi tetap gunakan OAuth userinfo identify/email bawaan provider.
-      issuer: 'https://discord.com',
+      // Keep the exact same redirect URI for BOTH authorization and token exchange.
+      // Discord compares this value byte-for-byte at the token endpoint.
+      authorization: {
+        url: 'https://discord.com/api/oauth2/authorize',
+        params: {
+          scope: 'identify email',
+          redirect_uri: 'https://www.choguniverse.xyz/api/auth/callback/discord',
+        },
+      },
+      token: {
+        async request({ params }: any) {
+          const response = await fetch('https://discord.com/api/oauth2/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+              client_id: process.env.DISCORD_CLIENT_ID || '',
+              client_secret: process.env.DISCORD_CLIENT_SECRET || '',
+              grant_type: 'authorization_code',
+              code: String(params.code || ''),
+              redirect_uri: 'https://www.choguniverse.xyz/api/auth/callback/discord',
+            }),
+          })
+          const tokens = await response.json()
+          if (!response.ok || !tokens.access_token) {
+            console.error('Discord token exchange failed', {
+              status: response.status,
+              error: tokens.error,
+              description: tokens.error_description,
+            })
+            throw new Error(`Discord token exchange failed: ${tokens.error || response.status}`)
+          }
+          // The profile is fetched from Discord's /users/@me endpoint.
+          // Ignore the optional OIDC id_token to avoid mixing OAuth and OIDC flows.
+          delete tokens.id_token
+          return { tokens }
+        },
+      },
     }),
     TwitterProvider({
       clientId: process.env.TWITTER_CLIENT_ID || '',
