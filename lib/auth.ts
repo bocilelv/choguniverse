@@ -9,29 +9,10 @@ export const authOptions: NextAuthOptions = {
     DiscordProvider({
       clientId: process.env.DISCORD_CLIENT_ID || '',
       clientSecret: process.env.DISCORD_CLIENT_SECRET || '',
-      // Discord baru-baru ini mulai mengirim id_token; openid-client menolaknya
-      // tanpa issuer. Kita tukar token manual & buang id_token — data user
-      // tetap diambil via userinfo (identify email).
-      token: {
-        request: async ({ provider, params }: any) => {
-          const res = await fetch('https://discord.com/api/oauth2/token', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-              Authorization: 'Basic ' + Buffer.from(`${provider.clientId}:${provider.clientSecret}`).toString('base64'),
-            },
-            body: new URLSearchParams({
-              grant_type: 'authorization_code',
-              code: params.code,
-              redirect_uri: provider.callbackUrl,
-            }),
-          })
-          const tokens = await res.json()
-          if (!tokens.access_token) throw new Error('discord token error: ' + JSON.stringify(tokens))
-          delete tokens.id_token
-          return { tokens }
-        },
-      },
+      // Discord sekarang mengirim metadata OIDC pada token response.
+      // Tetapkan issuer resmi agar openid-client dapat memvalidasinya,
+      // tetapi tetap gunakan OAuth userinfo identify/email bawaan provider.
+      issuer: 'https://discord.com',
     }),
     TwitterProvider({
       clientId: process.env.TWITTER_CLIENT_ID || '',
