@@ -207,7 +207,7 @@ const R_ABI = [
   'function create(string title, uint256 prizeTokenId, uint64 endsAt, uint32 winnerCount, uint32 ticketSupply, uint256 ticketPrice, address paymentToken)',
 ];
 const $ = id => document.getElementById(id);
-let prov, ifaceN, state = { account: null, myTokens: [] }, signer = null;
+let prov, ifaceN, state = { account: null, myTokens: [], selToken: null }, signer = null;
 const GP = () => ({ maxFeePerGas: ethers.utils.parseUnits(NET.key === 'MO' ? '250' : '0.05', 'gwei'), maxPriorityFeePerGas: ethers.utils.parseUnits(NET.key === 'MO' ? '2' : '0.05', 'gwei') });
 function toast(m) { const t = $('toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = 'none', 3400); }
 
@@ -226,7 +226,7 @@ $('netMO').onclick = () => setNet('MO');
 
 // pilih chog dari chips
 window.pickChog = function(id) {
-  $('rPrize').value = id;
+  state.selToken = id;
   document.querySelectorAll('.chip').forEach(c => c.classList.toggle('sel', c.dataset.tid == id));
 };
 
