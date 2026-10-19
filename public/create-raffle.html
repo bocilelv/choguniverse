@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chogffle — Create a Raffle</title>
+  <link rel="icon" type="image/webp" href="assets/logo.webp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Koulen&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cream:#EFE6CE; --cream2:#F7F0DD; --ink:#2B2118; --ink-soft:#5C4F3F;
+      --pink:#EC2F7A; --pink-dark:#C41F62; --navy:#1B2B4B; --gold:#F2C14E; --purple:#7B5FC7;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:var(--cream); color:var(--ink); font-family:'Nunito',sans-serif; min-height:100vh; }
+    h1,h2,h3,.koulen { font-family:'Koulen',sans-serif; font-weight:400; letter-spacing:.5px; }
+
+    .top { position:sticky; top:0; z-index:50; display:flex; align-items:center;
+      justify-content:space-between; padding:10px 18px; background:rgba(239,230,206,.96);
+      border-bottom:3px solid var(--ink); backdrop-filter:blur(8px); }
+    .brand { display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--ink); }
+    .brand img { width:38px; height:38px; border-radius:10px; border:2.5px solid var(--ink); }
+    .brand .t1 { font-family:'Koulen'; font-size:20px; line-height:1; }
+    .brand .t2 { font-size:9px; font-weight:900; color:var(--pink); letter-spacing:1.5px; }
+    .topright { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .btn { font-family:'Koulen'; font-size:15px; border:2.5px solid var(--ink); border-radius:12px;
+      padding:8px 16px; cursor:pointer; text-decoration:none; display:inline-block; transition:.12s; }
+    .btn-pink { background:var(--pink); color:#fff; box-shadow:3px 3px 0 var(--ink); }
+    .btn-pink:hover { transform:translate(-1px,-1px); box-shadow:4px 4px 0 var(--ink); }
+    .btn-pink:disabled { opacity:.4; cursor:not-allowed; transform:none; }
+    .btn-ghost { background:var(--cream2); color:var(--ink); box-shadow:3px 3px 0 var(--ink); }
+    .wchip { display:none; align-items:center; gap:8px; background:var(--cream2); border:2.5px solid var(--ink);
+      border-radius:12px; padding:7px 14px; font-weight:900; font-size:13px; }
+    .wchip .dot { width:9px; height:9px; border-radius:50%; background:#3CC96A; }
+    .netsw { display:flex; border:2.5px solid var(--ink); border-radius:12px; overflow:hidden;
+      box-shadow:3px 3px 0 var(--ink); }
+    .netsw button { font-family:'Koulen'; font-size:14px; padding:8px 14px; border:none;
+      cursor:pointer; background:var(--cream2); color:var(--ink-soft); }
+    .netsw button.on { background:var(--navy); color:var(--gold); }
+
+    .wrap { max-width:720px; margin:0 auto; padding:40px 20px 90px; }
+    .head { text-align:center; margin-bottom:30px; }
+    .head h1 { font-size:clamp(32px, 5.5vw, 50px); text-transform:uppercase; }
+    .head h1 span { color:var(--pink); }
+    .head p { font-weight:700; color:var(--ink-soft); margin-top:2px; }
+
+    .panel { border:4px solid var(--ink); border-radius:26px; background:var(--cream2);
+      box-shadow:7px 7px 0 rgba(43,33,24,.3); padding:28px; }
+    .panel .picon { text-align:center; margin-bottom:14px; }
+    .panel .picon img { height:110px; width:110px; object-fit:contain; border-radius:50%;
+      border:3px solid var(--ink); background:#fff; }
+
+    .fgrid { display:grid; grid-template-columns:repeat(2, 1fr); gap:16px; }
+    .fld.full { grid-column:1/-1; }
+    .fld label { display:block; font-family:'Koulen'; font-size:15px; margin-bottom:5px; }
+    .fld input, .fld select { width:100%; border:2.5px solid var(--ink); border-radius:12px;
+      padding:12px 14px; font-family:'Nunito'; font-weight:700; font-size:15px; background:#fff; }
+    .fld input:focus, .fld select:focus { outline:3px solid var(--gold); }
+
+    .hl { background:var(--gold); border:2.5px solid var(--ink); border-radius:14px; padding:11px 16px;
+      margin-top:18px; font-weight:900; font-size:14px; text-align:center; }
+
+    .cta { display:flex; gap:12px; margin-top:20px; flex-wrap:wrap; }
+    .cta .btn-pink { font-size:20px; padding:14px 30px; flex:1; }
+    .cta .btn-ghost { font-size:16px; }
+
+    .cnote { font-weight:700; font-size:13px; color:var(--ink-soft); margin-top:16px; line-height:1.65; }
+    .cnote b { color:var(--ink); }
+
+    .mynft { margin-top:20px; border-top:2.5px dashed var(--ink-soft); padding-top:16px; }
+    .mynft .lab { font-family:'Koulen'; font-size:16px; margin-bottom:8px; }
+    .chips { display:flex; flex-wrap:wrap; gap:8px; }
+    .chip { border:2.5px solid var(--ink); border-radius:99px; background:#fff; padding:6px 16px;
+      font-weight:900; font-size:13.5px; cursor:pointer; transition:.12s; }
+    .chip.sel { background:var(--gold); box-shadow:2px 2px 0 var(--ink); }
+
+    .modal { position:fixed; inset:0; background:rgba(43,33,24,.55); z-index:300; display:none;
+      align-items:center; justify-content:center; padding:20px; }
+    .modal.show { display:flex; }
+    .mbox { background:var(--cream2); border:4px solid var(--ink); border-radius:22px;
+      box-shadow:8px 8px 0 rgba(43,33,24,.5); max-width:640px; width:100%; max-height:82vh;
+      overflow-y:auto; padding:26px 28px; }
+    .mbox h2 { font-size:26px; margin-bottom:14px; }
+    .mbox ol { margin-left:20px; }
+    .mbox li { font-weight:600; font-size:13.5px; line-height:1.65; margin-bottom:9px; }
+
+    .foot { text-align:center; margin-top:44px; font-weight:700; color:var(--ink-soft); font-size:13px; }
+    .foot a { color:var(--pink); text-decoration:none; }
+    .toast { position:fixed; bottom:22px; left:50%; transform:translateX(-50%); background:var(--navy);
+      color:#fff; font-weight:900; padding:12px 24px; border-radius:14px; border:3px solid var(--ink);
+      z-index:400; display:none; font-size:14px; box-shadow:5px 5px 0 rgba(0,0,0,.3); max-width:90vw; }
+  </style>
+</head>
+<body>
+
+<nav class="top">
+  <a class="brand" href="/">
+    <img src="assets/logo.webp" alt="chog">
+    <span><span class="t1">CHOGUNIVERSE</span><br><span class="t2">CHOGFFLE</span></span>
+  </a>
+  <div class="topright">
+    <div class="netsw">
+      <button id="netRH" class="on">RH TESTNET</button>
+      <button id="netMO">MONAD TESTNET</button>
+    </div>
+    <a class="btn btn-ghost" href="/raffle.html">← RAFFLES</a>
+    <div class="wchip" id="wchip"><span class="dot"></span><span id="waddr"></span></div>
+    <button class="btn btn-pink" id="connectBtn">CONNECT WALLET</button>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="head">
+    <h1>RUN A <span>RAFFLE</span></h1>
+    <p>your chog, your raffle — held by the contract, drawn on-chain</p>
+  </div>
+
+  <div class="panel">
+    <div class="picon"><img src="assets/util-raffle.webp" alt="raffle"></div>
+
+    <div class="fgrid">
+      <div class="fld full"><label>RAFFLE TITLE</label><input id="rTitle" placeholder="Chog Genesis Celebration" maxlength="64"></div>
+
+      <div class="fld"><label>TICKET PRICE</label><input id="rPrice" type="number" step="0.001" min="0.001" placeholder="0.01"></div>
+      <div class="fld"><label>CURRENCY</label>
+        <select id="rToken"></select>
+      </div>
+      <div class="fld"><label>TICKET SUPPLY</label><input id="rSupply" type="number" min="1" placeholder="20"></div>
+      <div class="fld"><label>END DATE</label><input id="rEnd" type="datetime-local"></div>
+    </div>
+
+    <div class="mynft">
+      <div class="lab">YOUR CHOGS</div>
+      <div class="chips" id="myChogs"><span style="font-weight:700;font-size:13px;color:var(--ink-soft)">connect wallet to load your chogs</span></div>
+    </div>
+
+    <div class="hl">✨ Staking a CHOG gives you 50% off fees and Highlighted raffles!</div>
+
+    <div class="cta">
+      <button class="btn btn-pink" id="createBtn">CREATE RAFFLE 🎁</button>
+      <button class="btn btn-ghost" id="tcBtn">TERMS</button>
+    </div>
+
+    <div class="cnote">
+      <b>How it runs:</b> your prize chog is held by the smart contract itself — never a wallet, never a person, nobody can move it until the draw ·
+      0.05 refundable deposit, returned automatically when the raffle concludes ·
+      5% commission on ticket revenue · minimum 24h, maximum 30 days ·
+      cancel allowed only while zero tickets are sold · winners drawn by on-chain RNG — anyone can settle when time's up.
+    </div>
+  </div>
+
+  <div class="foot">chogffle create — vibecoded by <a href="https://x.com/bocilelv" target="_blank" rel="noopener">@bocilelv</a></div>
+</div>
+
+<!-- T&C MODAL -->
+<div class="modal" id="tcModal">
+  <div class="mbox">
+    <h2>TERMS & <span style="color:var(--pink)">CONDITIONS</span></h2>
+    <ol>
+      <li>When you create a raffle, the NFT prize you have selected will be automatically transferred from your wallet into the smart contract itself, where it is securely held for the duration of the raffle. The prize never touches a personal wallet, and nobody — not even the team — can move it until the raffle is drawn.</li>
+      <li>You will be charged an up-front refundable deposit of 0.05 ETH when creating a raffle. This deposit will be automatically refunded once the raffle concludes.</li>
+      <li>CHOG Genesis NFT holders who have staked their NFTs prior to creating a raffle will receive a 50% off fee discount. Their raffles will also be featured in the "Highlight" section on the platform's homepage.</li>
+      <li>If no tickets are sold for your raffle, your NFT will be returned to you. However, if at least one ticket is sold, the NFT will no longer be refundable to the raffle creator.</li>
+      <li>You can specify the duration of your raffle when creating it. All raffles must run for a minimum of 24 hours and a maximum of 30 days.</li>
+      <li>Chogffle will charge a 5% commission fee on the total revenue generated from raffle ticket sales.</li>
+      <li>Raffles CANNOT be edited or canceled once at least one ticket has been sold.</li>
+      <li>Purchasing tickets for your own raffle using alternative wallets is strictly prohibited. Any raffle found engaging in such activity will be flagged as suspicious and removed from all search results on Chogffle.</li>
+    </ol>
+    <button class="btn btn-pink" id="tcClose">GOT IT</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="ethers.js"></script>
+<script>
+const NETWORKS = {
+  RH: {
+    key: 'RH', chainId: '0xb626', name: 'Robinhood Chain Testnet',
+    rpc: 'https://rpc.testnet.chain.robinhood.com',
+    nft: '0x9897d240f5241672A0455621bb7F3E8352A99Fc4',
+    raffle: '0x40BaDC5F14Bd5c42C72d7B4267434Febe92F7157',
+    symbol: 'ETH', erc20s: [
+      { label: 'ETH (native)', addr: '0x0000000000000000000000000000000000000000' },
+      { label: 'USDG', addr: '0x0000000000000000000000000000000000000000' },
+    ],
+  },
+  MO: {
+    key: 'MO', chainId: '0x279f', name: 'Monad Testnet',
+    rpc: 'https://testnet-rpc.monad.xyz',
+    nft: '0x149D68Caa85FdA6Cf135a63e425485783C42EB28',
+    raffle: '0x2bBa918544e2ba236e730859108bd3E0921077Af',
+    symbol: 'MON', erc20s: [
+      { label: 'MON (native)', addr: '0x0000000000000000000000000000000000000000' },
+      { label: 'CHOG', addr: '0x350035555E10d9AfAF1566AaebfCeD5BA6C27777' },
+    ],
+  },
+};
+let NET = NETWORKS.RH;
+const NFT_ABI = [
+  'function setApprovalForAll(address,bool)',
+  'function isApprovedForAll(address,address) view returns (bool)',
+  'event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)',
+];
+const R_ABI = [
+  'function create(string title, uint256 prizeTokenId, uint64 endsAt, uint32 winnerCount, uint32 ticketSupply, uint256 ticketPrice, address paymentToken)',
+];
+const $ = id => document.getElementById(id);
+let prov, ifaceN, state = { account: null, myTokens: [] }, signer = null;
+const GP = () => ({ maxFeePerGas: ethers.utils.parseUnits(NET.key === 'MO' ? '250' : '0.05', 'gwei'), maxPriorityFeePerGas: ethers.utils.parseUnits(NET.key === 'MO' ? '2' : '0.05', 'gwei') });
+function toast(m) { const t = $('toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = 'none', 3400); }
+
+function setNet(key) {
+  NET = NETWORKS[key];
+  $('netRH').classList.toggle('on', key === 'RH');
+  $('netMO').classList.toggle('on', key === 'MO');
+  prov = new ethers.providers.JsonRpcProvider(NET.rpc);
+  ifaceN = new ethers.utils.Interface(NFT_ABI);
+  $('rToken').innerHTML = NET.erc20s.map(t => `<option value="${t.addr}">${t.label}</option>`).join('');
+  if (signer) switchWalletChain();
+  loadMyTokens();
+}
+$('netRH').onclick = () => setNet('RH');
+$('netMO').onclick = () => setNet('MO');
+
+// pilih chog dari chips
+window.pickChog = function(id) {
+  $('rPrize').value = id;
+  document.querySelectorAll('.chip').forEach(c => c.classList.toggle('sel', c.dataset.tid == id));
+};
+
+const DS = location.port === '8901' ? 'http://' + location.hostname + ':8902' : '/api/mapfeed';
+
+async function loadMyTokens() {
+  if (!state.account) return;
+  try {
+    // 1) snapshot dari data server (instan, scan penuh) — RH only
+    let owners = {};
+    if (NET.key === 'RH') {
+      try {
+        const snap = await fetch(DS + '/state', { headers: { 'Accept': 'application/json' } }).then(r => r.json());
+        if (snap && snap.owners) owners = snap.owners;
+      } catch (e) {}
+    }
+    // 2) fallback RPC window kalau snapshot kosong / network lain
+    if (!Object.keys(owners).length) {
+      const cur = await prov.getBlockNumber();
+      const logs = await prov.getLogs({ address: NET.nft, fromBlock: Math.max(0, cur - (NET.key === 'MO' ? 90000 : 60000)), topics: [ethers.utils.id('Transfer(address,address,uint256)')] });
+      for (const lg of logs) {
+        const e = ifaceN.parseLog(lg).args;
+        owners[e.tokenId.toString()] = e.to.toLowerCase();
+      }
+    }
+    state.myTokens = Object.entries(owners).filter(([t, o]) => o === state.account.toLowerCase()).map(([t]) => t);
+    $('myChogs').innerHTML = state.myTokens.length
+      ? state.myTokens.map(t => `<button class="chip" data-tid="${t}" onclick="pickChog('${t}')">#${t}</button>`).join('')
+      : '<span style="font-weight:700;font-size:13px;color:var(--ink-soft)">no chogs in this wallet — mint one on the world map first</span>';
+    if (state.myTokens.length) pickChog(state.myTokens[state.myTokens.length - 1]);
+  } catch (e) {}
+}
+
+$('tcBtn').onclick = () => $('tcModal').classList.add('show');
+$('tcClose').onclick = () => $('tcModal').classList.remove('show');
+$('tcModal').onclick = e => { if (e.target === $('tcModal')) $('tcModal').classList.remove('show'); };
+
+$('createBtn').onclick = async () => {
+  if (!signer) return toast('Please connect your wallet first');
+  const title = $('rTitle').value.trim();
+  const prize = state.selToken || $('rPrize')?.value;
+  const price = $('rPrice').value;
+  const token = $('rToken').value;
+  const supply = $('rSupply').value;
+  const endVal = $('rEnd').value;
+  const wc = 1;
+  if (!title) return toast('Give your raffle a title');
+  if (!prize) return toast('Tap one of your chogs above to make it the prize');
+  if (!price || +price <= 0) return toast('Set a ticket price');
+  if (!supply || +supply < 1) return toast('Set ticket supply');
+  if (!endVal) return toast('Pick an end date');
+  const endsAt = Math.floor(new Date(endVal).getTime() / 1000);
+  const dur = endsAt - Math.floor(Date.now() / 1000);
+  if (dur < 24 * 3600) return toast('Minimum duration is 24 hours');
+  if (dur > 30 * 86400) return toast('Maximum duration is 30 days');
+  if (!state.myTokens.includes(prize)) return toast('That chog is not in your wallet');
+  try {
+    const ok = await new ethers.Contract(NET.nft, ['function isApprovedForAll(address,address) view returns (bool)'], prov).isApprovedForAll(state.account, NET.raffle);
+    if (!ok) {
+      toast('Approving the chogffle contract…');
+      const nftS = new ethers.Contract(NET.nft, ['function setApprovalForAll(address,bool)'], signer);
+      await (await nftS.setApprovalForAll(NET.raffle, true, GP())).wait();
+    }
+    toast('Please confirm in your wallet (deposit 0.05)…');
+    const c = new ethers.Contract(NET.raffle, R_ABI, signer);
+    await (await c.create(title, prize, endsAt, wc, supply, ethers.utils.parseEther(String(price)), token, { value: ethers.utils.parseEther('0.05'), ...GP() })).wait();
+    toast('Chogffle is LIVE! Redirecting… 🎁');
+    setTimeout(() => location.href = '/raffle.html', 1400);
+  } catch (e) { toast('Failed: ' + (e.data?.message || e.message).slice(0, 70)); }
+};
+
+async function switchWalletChain() {
+  try {
+    await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: NET.chainId }] });
+  } catch (e) {
+    if (e.code === 4902) {
+      await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [{
+        chainId: NET.chainId, chainName: NET.name,
+        nativeCurrency: { name: NET.symbol === 'MON' ? 'Mon' : 'Ether', symbol: NET.symbol, decimals: 18 },
+        rpcUrls: [NET.rpc],
+      }]});
+    }
+  }
+}
+
+async function connect() {
+  if (!window.ethereum) return toast('Please install MetaMask 🦊');
+  try {
+    const accs = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    state.account = accs[0];
+    await switchWalletChain();
+    signer = new ethers.providers.Web3Provider(window.ethereum).getSigner();
+    $('connectBtn').style.display = 'none';
+    $('wchip').style.display = 'flex';
+    $('waddr').textContent = state.account.slice(0, 6) + '…' + state.account.slice(-4);
+    toast('Wallet connected 🐴');
+    loadMyTokens();
+  } catch (e) { toast('Connection failed — please try again'); }
+}
+$('connectBtn').onclick = connect;
+
+(function initEnd() {
+  const d = new Date(Date.now() + 86400000);
+  d.setSeconds(0, 0);
+  $('rEnd').value = d.toISOString().slice(0, 16);
+})();
+
+setNet('RH');
+</script>
+</body>
+</html>
