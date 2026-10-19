@@ -23,13 +23,6 @@ export function Navbar() {
 
         {/* Desktop */}
         <div className="hidden sm:flex items-center gap-1">
-          <a href="/whitelist"
-            className="flex items-center gap-1 font-bold text-sm px-3 py-1.5 rounded-lg hover:bg-cream2 transition-colors">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" className="inline">
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-            RAFFLES
-          </a>
           {LINKS.map((l) => (
             <a key={l.href} href={l.href}
               className="font-bold text-sm px-3 py-1.5 rounded-lg hover:bg-cream2 transition-colors">
@@ -66,13 +59,6 @@ export function Navbar() {
       {/* Mobile dropdown */}
       {open && (
         <div className="sm:hidden border-t-2 border-ink bg-cream px-3 py-3 flex flex-col gap-2">
-          <a href="/whitelist" onClick={() => setOpen(false)}
-            className="flex items-center gap-2 font-black text-sm px-4 py-3 rounded-xl border-2 border-ink bg-white">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-            BACK TO RAFFLES
-          </a>
           {LINKS.map((l) => (
             <a key={l.href} href={l.href} onClick={() => setOpen(false)}
               className="font-black text-sm px-4 py-3 rounded-xl border-2 border-ink bg-white">
