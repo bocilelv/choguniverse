@@ -5,9 +5,9 @@ import { signIn } from 'next-auth/react'
 export default function LoginPage() {
   return (
     <main className="max-w-md mx-auto px-4 py-12 text-center">
-      <div className="rounded-3xl border-2 border-ink bg-white p-6 shadow-[6px_6px_0_ink]">
+      <div>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/assets/login-art.webp" alt="chog lock globe" className="w-40 h-40 mx-auto rounded-2xl border-2 border-ink object-cover" />
+        <img src="/assets/login-art.webp" alt="chog lock globe" className="w-44 h-44 mx-auto object-contain" />
         <h1 className="font-black text-3xl mt-5">JOIN THE<br /><span className="text-pink">CHOG UNIVERSE</span></h1>
         <p className="mt-3 font-bold text-sm text-ink/60">login to enter whitelist raffles</p>
         <div className="mt-6 space-y-3">
