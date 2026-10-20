@@ -338,7 +338,7 @@ export function AdminClient({ raffles }: { raffles: Raffle[] }) {
               </label>
             </div>
             <label className="block mt-3">
-              <span className="font-black text-[11px] text-ink/60">Required wallet (untuk kirim hadiah)</span>
+              <span className="font-black text-[11px] text-ink/60">Required wallet (for prize delivery)</span>
               <select value={form.walletChain} onChange={(e) => setF('walletChain', e.target.value)}
                 className="mt-1 w-full sm:w-72 font-bold text-sm border-2 border-ink rounded-xl px-3 py-2.5 bg-white focus:outline-none">
                 <option value="EVM">EVM (ETH / MON / Robinhood)</option>
