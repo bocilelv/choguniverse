@@ -355,7 +355,8 @@ $('flipBtn').onclick = async () => {
   if (!signer) return toast('Please connect your wallet first');
   try {
     toast('Please confirm in your wallet…');
-    // JANGAN spin dulu — tunggu tx beneran masuk chain
+    // signer FRESH tiap flip — biar ikut network aktif di wallet (fix 'underlying network changed')
+    signer = new ethers.providers.Web3Provider(window.ethereum).getSigner();
     const c = new ethers.Contract(NET.flip, FLIP_ABI, signer);
     const tx = await c.flip({ value: ethers.utils.parseEther(String(stake)), ...NET.gp() });
     const rc = await tx.wait();
@@ -384,6 +385,18 @@ async function switchWalletChain() {
       }]});
     }
   }
+}
+
+// wallet ganti network -> sinkron UI + reset signer
+if (window.ethereum) {
+  window.ethereum.on('chainChanged', (cid) => {
+    signer = null;
+    const rh = cid && cid.toLowerCase() === '0xb626';
+    const mo = cid && cid.toLowerCase() === '0x279f';
+    if (rh || mo) setNet(rh ? 'RH' : 'MO');
+    else { prov = null; ro = null; toast('Network not supported — switch back to RH or Monad'); }
+    if (account) { try { signer = new ethers.providers.Web3Provider(window.ethereum).getSigner(); } catch (e) {} }
+  });
 }
 
 async function connect() {

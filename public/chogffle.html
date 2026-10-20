@@ -469,6 +469,14 @@ async function switchWalletChain() {
   }
 }
 
+// wallet ganti network -> reset signer (fix 'underlying network changed')
+if (window.ethereum) {
+  window.ethereum.on('chainChanged', () => {
+    signer = null;
+    try { signer = new ethers.providers.Web3Provider(window.ethereum).getSigner(); } catch (e) {}
+  });
+}
+
 async function connect() {
   if (!window.ethereum) return toast('Please install MetaMask 🦊');
   try {
