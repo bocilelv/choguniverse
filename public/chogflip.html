@@ -367,8 +367,15 @@ $('flipBtn').onclick = async () => {
   if (!signer) return toast('Please connect your wallet first');
   try {
     toast('Please confirm in your wallet…');
-    // signer FRESH tiap flip — biar ikut network aktif di wallet (fix 'underlying network changed')
-    signer = new ethers.providers.Web3Provider(window.ethereum).getSigner();
+    // signer FRESH tiap flip + pastiin wallet di chain yang bener sebelum kirim TX
+    const web3 = new ethers.providers.Web3Provider(window.ethereum);
+    const walletChain = (await web3.getNetwork()).chainId;
+    if ('0x' + walletChain.toString(16) !== NET.chainId) {
+      await switchWalletChain();
+      toast('Switching network… try again in a few seconds');
+      return;
+    }
+    signer = web3.getSigner();
     const c = new ethers.Contract(NET.flip, FLIP_ABI, signer);
     const tx = await c.flip({ value: ethers.utils.parseEther(String(stake)), ...NET.gp() });
     const rc = await tx.wait();
