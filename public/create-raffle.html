@@ -104,7 +104,7 @@
       <button id="netRH" class="on">RH TESTNET</button>
       <button id="netMO">MONAD TESTNET</button>
     </div>
-    <a class="btn btn-ghost" href="/raffle.html">← RAFFLES</a>
+    <a class="btn btn-ghost" href="/chogffle">← RAFFLES</a>
     <div class="wchip" id="wchip"><span class="dot"></span><span id="waddr"></span></div>
     <button class="btn btn-pink" id="connectBtn">CONNECT WALLET</button>
   </div>
@@ -138,7 +138,7 @@
     <div class="hl">✨ Staking a CHOG gives you 50% off fees and Highlighted raffles!</div>
 
     <div class="cta">
-      <button class="btn btn-pink" id="createBtn">CREATE RAFFLE 🎁</button>
+      <button class="btn btn-pink" id="createBtn">CREATE RAFFLE</button>
       <button class="btn btn-ghost" id="tcBtn">TERMS</button>
     </div>
 
@@ -294,7 +294,7 @@ $('createBtn').onclick = async () => {
     const c = new ethers.Contract(NET.raffle, R_ABI, signer);
     await (await c.create(title, prize, endsAt, wc, supply, ethers.utils.parseEther(String(price)), token, { value: ethers.utils.parseEther('0.05'), ...GP() })).wait();
     toast('Chogffle is LIVE! Redirecting… 🎁');
-    setTimeout(() => location.href = '/raffle.html', 1400);
+    setTimeout(() => location.href = '/chogffle', 1400);
   } catch (e) { toast('Failed: ' + (e.data?.message || e.message).slice(0, 70)); }
 };
 
