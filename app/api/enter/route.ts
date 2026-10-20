@@ -3,7 +3,6 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { checkIfUserFollows } from '@/lib/twitter'
-import { notifyEntry } from '@/lib/notify'
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
@@ -47,16 +46,6 @@ export async function POST(req: NextRequest) {
     prisma.entry.create({ data: { userId: user.id, raffleId, isValid: true, ticketNumber } }),
     prisma.raffle.update({ where: { id: raffleId }, data: { entriesCount: { increment: 1 } } }),
   ])
-
-  // ping Discord: collab manager dapat notif tiap ada yang enter
-  notifyEntry({
-    user: user.twitterUsername ? '@' + user.twitterUsername : (user.discordUsername || user.name || user.email.slice(0, 12)),
-    userImage: user.image,
-    raffle: raffle.title,
-    ticket: ticketNumber,
-    entriesCount: raffle.entriesCount + 1,
-    totalSpots: raffle.totalSpots,
-  })
 
   return NextResponse.json({ ok: true, ticketNumber })
 }
