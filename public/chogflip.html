@@ -292,7 +292,19 @@ async function refreshStats() {
 async function refreshFeed() {
   try {
     const cur = await prov.getBlockNumber();
-    const logs = await prov.getLogs({ address: NET.flip, fromBlock: Math.max(0, cur - 60000), topics: [ethers.utils.id('Flipped(address,uint256,bool,uint256,uint256)')] });
+    const RANGE = NET.key === 'MO' ? 100 : 60000; // Monad RPC: getLogs max 100 block per request
+    let logs = [];
+    if (NET.key === 'MO') {
+      // chunked scan: 2400 block terakhir (24 request x 100)
+      for (let i = 0; i < 24; i++) {
+        const to = cur - i * 100;
+        const from = Math.max(0, to - 99);
+        const batch = await prov.getLogs({ address: NET.flip, fromBlock: from, toBlock: to, topics: [ethers.utils.id('Flipped(address,uint256,bool,uint256,uint256)')] }).catch(() => []);
+        logs = logs.concat(batch);
+      }
+    } else {
+      logs = await prov.getLogs({ address: NET.flip, fromBlock: Math.max(0, cur - RANGE), topics: [ethers.utils.id('Flipped(address,uint256,bool,uint256,uint256)')] });
+    }
     const rows = logs.slice(-15).reverse().map(lg => {
       const e = iface.parseLog(lg).args;
       return `<div class="frow"><img src="assets/chog-portrait.webp"><span class="who">${e.player === account ? 'YOU' : short(e.player)}</span><span>${(+ethers.utils.formatEther(e.stake)).toFixed(3)} ${NET.symbol}</span><span class="res ${e.won ? 'w' : 'l'}">${e.won ? 'WIN ×2' : 'lost'}</span></div>`;
