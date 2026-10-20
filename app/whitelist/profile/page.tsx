@@ -32,6 +32,14 @@ export default async function ProfilePage() {
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-8">
+      {/* BACK TO WL RAFFLES */}
+      <a href="/whitelist" className="inline-flex items-center gap-1.5 font-bold text-sm px-3.5 py-2 rounded-lg border-2 border-ink bg-white hover:bg-cream2 transition-colors mb-4">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M19 12H5M12 19l-7-7 7-7" />
+        </svg>
+        WL RAFFLES
+      </a>
+
       {/* USER CARD */}
       <div className="rounded-3xl border-2 border-ink bg-white p-5 sm:p-6 shadow-[6px_6px_0_ink] flex items-center gap-5">
         {/* eslint-disable-next-line @next/next/no-img-element */}
