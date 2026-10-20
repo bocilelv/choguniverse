@@ -46,8 +46,8 @@ export function AdminClient({ raffles }: { raffles: Raffle[] }) {
   const setF = (k: string, v: any) => setForm({ ...form, [k]: v })
 
   const submit = async () => {
-    if (!form.title || !form.endDate) return toast.error('title & end date wajib')
-    if (!form.twitterHandle1.trim()) return toast.error('minimal 1 follow requirement (handle #1) wajib diisi')
+    if (!form.title || !form.endDate) return toast.error('title & end date are required')
+    if (!form.twitterHandle1.trim()) return toast.error('at least 1 follow requirement (handle #1) is required')
     setBusy(true)
     try {
       const payload = {
@@ -76,7 +76,7 @@ export function AdminClient({ raffles }: { raffles: Raffle[] }) {
   }
 
   const del = async (id: string, title: string) => {
-    if (!confirm(`Delete "${title}"? Semua entries ikut kehapus.`)) return
+    if (!confirm(`Delete "${title}"? All entries will be deleted too.`)) return
     setBusy(true)
     try {
       const res = await fetch(`/api/admin/raffles/${id}`, { method: 'DELETE' })
@@ -87,7 +87,7 @@ export function AdminClient({ raffles }: { raffles: Raffle[] }) {
   }
 
   const pick = async (id: string, title: string) => {
-    if (!confirm(`Pick winners for "${title}"? (acak dari entri valid)`)) return
+    if (!confirm(`Pick winners for "${title}"? (random from valid entries)`)) return
     setBusy(true)
     try {
       const res = await fetch(`/api/admin/raffles/${id}/winners`, { method: 'POST' })
@@ -138,7 +138,15 @@ export function AdminClient({ raffles }: { raffles: Raffle[] }) {
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="font-black text-2xl">ADMIN</h1>
+      <div className="flex items-center gap-3 mb-1">
+        <a href="/whitelist" className="flex items-center gap-1 font-bold text-sm px-3 py-1.5 rounded-lg border-2 border-ink bg-white hover:bg-cream2 transition-colors">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+          RAFFLES
+        </a>
+        <h1 className="font-black text-2xl">ADMIN</h1>
+      </div>
 
       <div className="flex gap-2 mt-4 mb-6">
         <button onClick={() => { setTab('list'); setEditId(null) }}
@@ -337,10 +345,10 @@ export function AdminClient({ raffles }: { raffles: Raffle[] }) {
                 <option value="SUI">SUI</option>
                 <option value="BTC">BTC</option>
                 <option value="INJ">INJ</option>
-                <option value="NONE">Tidak wajib wallet</option>
+                <option value="NONE">No wallet required</option>
               </select>
             </label>
-            <p className="mt-2 text-[11px] font-bold text-ink/40">minimal handle #1 wajib; sisanya optional — peserta harus paste wallet sesuai chain yang dipilih sebelum bisa entry</p>
+            <p className="mt-2 text-[11px] font-bold text-ink/40">handle #1 is required; the rest are optional — participants must paste a wallet matching the selected chain before entering</p>
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">
