@@ -275,8 +275,8 @@ const NFT_ABI = [
   'event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)',
 ];
 const R_ABI = [
-  'function create(string title, uint256 prizeTokenId, uint64 endsAt, uint32 winnerCount, uint32 ticketSupply, uint256 ticketPrice, address paymentToken)',
-  'function buyTicket(uint256 id, uint32 count)',
+  'function create(string title, uint256 prizeTokenId, uint64 endsAt, uint32 winnerCount, uint32 ticketSupply, uint256 ticketPrice, address paymentToken) payable',
+  'function buyTicket(uint256 id, uint32 count) payable',
   'function settle(uint256 id)',
   'function cancel(uint256 id)',
   'function raffleCount() view returns (uint256)',

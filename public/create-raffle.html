@@ -204,7 +204,7 @@ const NFT_ABI = [
   'event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)',
 ];
 const R_ABI = [
-  'function create(string title, uint256 prizeTokenId, uint64 endsAt, uint32 winnerCount, uint32 ticketSupply, uint256 ticketPrice, address paymentToken)',
+  'function create(string title, uint256 prizeTokenId, uint64 endsAt, uint32 winnerCount, uint32 ticketSupply, uint256 ticketPrice, address paymentToken) payable',
 ];
 const $ = id => document.getElementById(id);
 let prov, ifaceN, state = { account: null, myTokens: [], selToken: null }, signer = null;
