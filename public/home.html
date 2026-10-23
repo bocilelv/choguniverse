@@ -200,7 +200,7 @@
         </div>
       </div>
     </a>
-    <div class="gameswrap" id="chogamesWrap" style="display:none;">
+    <div class="gameswrap" id="chogamesWrap">
       <a class="gpill coming" href="#" onclick="return false;">
         <div class="gimg"><img src="assets/game-chogrun.webp" alt="chog run">
           <div class="soon">COMING SOON</div>
@@ -227,8 +227,9 @@
   const w = document.getElementById('chogamesWrap');
   t.addEventListener('click', (e) => {
     e.preventDefault();
-    w.classList.toggle('show');
-    if (w.classList.contains('show')) w.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    const on = w.style.display === 'flex';
+    w.style.display = on ? 'none' : 'flex';
+    if (!on) w.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   });
 })();
 
