@@ -270,13 +270,30 @@
   })();
 })();
 
-document.getElementById('xdd').addEventListener('click', e => {
-  if (e.target.closest('.dd-item')) return;
-  document.getElementById('xdd').classList.toggle('open');
-});
-document.addEventListener('click', e => {
-  if (!e.target.closest('#xdd')) document.getElementById('xdd').classList.remove('open');
-});
+// ---- X / Twitter dropdown: hover-open + click stay-open (kayak chogames) ----
+(() => {
+  const dd = document.getElementById('xdd');
+  let pinned = false;
+  const open = () => dd.classList.add('open');
+  const close = () => { if (!pinned) dd.classList.remove('open'); };
+
+  dd.addEventListener('mouseenter', open);
+  dd.addEventListener('mouseleave', close);
+
+  dd.addEventListener('click', (e) => {
+    if (e.target.closest('.dd-item')) return; // item link -> navigasi normal
+    e.stopPropagation();
+    pinned = true;
+    open();
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#xdd')) { pinned = false; dd.classList.remove('open'); }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { pinned = false; dd.classList.remove('open'); }
+  });
+})();
 </script>
 </body>
 </html>
