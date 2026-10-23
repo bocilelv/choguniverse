@@ -36,7 +36,7 @@
 
     /* X dropdown */
     .dd { position:relative; }
-    .dd-menu { position:absolute; top:calc(100% + 10px); right:0; background:var(--cream2);
+    .dd-menu { position:absolute; top:calc(100% + 10px); right:0; background:var(--cream2); margin-top:-10px; padding-top:10px;
       border:3px solid var(--ink); border-radius:14px; box-shadow:5px 5px 0 rgba(43,33,24,.35);
       min-width:190px; display:none; overflow:hidden; }
     .dd.open .dd-menu { display:block; }
@@ -229,24 +229,33 @@
 </footer>
 
 <script>
-// ---- chogames header dropdown: hover-open (desktop) + tap (mobile) ----
+// ---- chogames header dropdown: hover-open + click stay-open ----
 (() => {
   const dd = document.getElementById('gamesdd');
+  let pinned = false; // diklik = stay open
   const open = () => dd.classList.add('open');
-  const close = () => dd.classList.remove('open');
-  // hover (desktop)
+  const close = () => { if (!pinned) dd.classList.remove('open'); };
+
+  // hover (desktop) — buka
   dd.addEventListener('mouseenter', open);
-  dd.addEventListener('mouseleave', (e) => {
-    // jangan tutup kalau mouse lagi di dalam menu (menu nempel di bawah icon)
-    if (!dd.contains(e.relatedTarget)) close();
-  });
-  // tap (mobile / klik)
+  // mouse keluar area dropdown (icon + menu) — tutup HANYA kalau ga di-pin
+  dd.addEventListener('mouseleave', close);
+
+  // klik icon/game: pin (stay open). klik lagi area dd: unpin & keep open? toggle pin:
   dd.addEventListener('click', (e) => {
     e.stopPropagation();
-    dd.classList.toggle('open');
+    pinned = true;      // setelah klik apapun di dlm dropdown -> stay
+    open();
   });
+  // klik item game -> navigasi (default), biarkan pinned (page pindah anyway)
+
+  // klik LUAR area dropdown -> unpin + tutup
   document.addEventListener('click', (e) => {
-    if (!e.target.closest('#gamesdd')) close();
+    if (!e.target.closest('#gamesdd')) { pinned = false; dd.classList.remove('open'); }
+  });
+  // Esc juga nutup
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { pinned = false; dd.classList.remove('open'); }
   });
 })();
 
