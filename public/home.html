@@ -92,7 +92,23 @@
       .util .pill { padding:8px 26px 8px 10px; gap:16px; }
       .util .pill img { height:56px; width:56px; }
     }
-  </style>
+  
+    /* chogames squares */
+    .gameswrap { display:none; gap:18px; width:100%; max-width:560px; margin:4px auto 8px; }
+    .gameswrap.show { display:flex; }
+    .gpill { text-decoration:none; color:var(--ink); flex:1; max-width:270px; }
+    .gpill .gimg { position:relative; aspect-ratio:1; border:4px solid var(--ink); border-radius:20px;
+      overflow:hidden; background:var(--cream2); box-shadow:6px 6px 0 rgba(43,33,24,.35); transition:.18s; }
+    .gpill:hover .gimg { transform:translate(-3px,-3px); box-shadow:9px 9px 0 rgba(43,33,24,.4); }
+    .gpill .gimg img { width:100%; height:100%; object-fit:cover; }
+    .gpill .glabel { font-family:'Koulen'; font-size:22px; text-align:center; margin-top:8px; text-transform:uppercase; }
+    .gpill.coming { cursor:not-allowed; opacity:.85; }
+    .gpill.coming .gimg img { filter:blur(4px) grayscale(.4); }
+    .gpill.coming .glabel { color:var(--ink-soft); }
+    .gpill .soon { position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+      font-family:'Koulen'; font-size:26px; color:#fff; background:rgba(43,33,24,.45); letter-spacing:1px;
+      text-shadow:2px 2px 0 var(--ink); }
+</style>
 <link rel="icon" type="image/png" href="/favicon-32.png"></head>
 <body>
 
@@ -175,24 +191,27 @@
         </div>
       </div>
     </a>
-    <a class="util" href="/chogrun">
+    <a class="util" href="#chogames" id="chogamesToggle">
       <div class="pill">
-        <img src="assets/util-whitelist.webp" alt="whitelist">
+        <img src="assets/util-chogames.webp" alt="chogames">
         <div class="ptxt">
-          <div class="plabel">CHOG RUN</div>
-          <div class="pdesc">run, jump, duck — endless runner</div>
+          <div class="plabel">CHOGAMES</div>
+          <div class="pdesc">arcade minigames for the chogs</div>
         </div>
       </div>
     </a>
-    <a class="util" href="/chogflap">
-      <div class="pill">
-        <img src="assets/util-whitelist.webp" alt="whitelist">
-        <div class="ptxt">
-          <div class="plabel">CHOG FLAP</div>
-          <div class="pdesc">flap through the leaf gaps</div>
+    <div class="gameswrap" id="chogamesWrap" style="display:none;">
+      <a class="gpill coming" href="#" onclick="return false;">
+        <div class="gimg"><img src="assets/game-chogrun.webp" alt="chog run">
+          <div class="soon">COMING SOON</div>
         </div>
-      </div>
-    </a>
+        <div class="glabel">CHOG RUN</div>
+      </a>
+      <a class="gpill" href="/chogflap">
+        <div class="gimg"><img src="assets/game-chogflap.webp" alt="chog flap"></div>
+        <div class="glabel">CHOG FLAP</div>
+      </a>
+    </div>
   </div>
 </main>
 
@@ -202,6 +221,17 @@
 </footer>
 
 <script>
+// ---- chogames toggle ----
+(() => {
+  const t = document.getElementById('chogamesToggle');
+  const w = document.getElementById('chogamesWrap');
+  t.addEventListener('click', (e) => {
+    e.preventDefault();
+    w.classList.toggle('show');
+    if (w.classList.contains('show')) w.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+})();
+
 // ---- parallax ala chog.xyz: hero art ngikutin mouse dikit (lerp biar halus) ----
 (() => {
   const art = document.getElementById('heroart');
