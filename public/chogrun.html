@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Chog Run — Choguniverse</title>
+<link rel="icon" type="image/png" href="/favicon-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Koulen&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  :root { --cream:#FFF8E7; --cream2:#F3E8CC; --pink:#FF5CA8; --ink:#232041; --gold:#FFD452; --navy:#3A2E6E; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--cream); color:var(--ink); font-family:'Nunito',sans-serif; min-height:100vh; overflow:hidden; }
+  .koulen { font-family:'Koulen',sans-serif; font-weight:400; }
+
+  #wrap { position:relative; width:100vw; height:100vh; display:flex; flex-direction:column; }
+  canvas { display:block; width:100%; flex:1; touch-action:none; image-rendering:auto; }
+
+  /* HUD */
+  .hud { position:absolute; top:0; left:0; right:0; display:flex; justify-content:space-between; align-items:center;
+         padding:14px 18px; pointer-events:none; z-index:10; }
+  .score { font-family:'Koulen',sans-serif; font-size:34px; color:var(--ink); text-shadow:2px 2px 0 rgba(255,255,255,.6); }
+  .hiscore { font-size:13px; font-weight:900; color:var(--ink); background:rgba(255,255,255,.7); border:2.5px solid var(--ink);
+             border-radius:99px; padding:5px 14px; }
+
+  /* overlays */
+  .ov { position:absolute; inset:0; z-index:20; display:flex; align-items:center; justify-content:center;
+        background:rgba(43,33,24,.45); backdrop-filter:blur(3px); }
+  .panel { background:var(--cream); border:4px solid var(--ink); border-radius:24px; padding:34px 40px; text-align:center;
+           box-shadow:8px 8px 0 rgba(0,0,0,.25); max-width:90vw; }
+  .panel h1 { font-family:'Koulen',sans-serif; font-size:42px; letter-spacing:1px; line-height:1; }
+  .panel h1 span { color:var(--pink); }
+  .panel p { font-weight:700; font-size:14px; color:var(--ink); opacity:.75; margin-top:10px; }
+  .bigbtn { margin-top:20px; font-family:'Koulen',sans-serif; font-size:22px; background:var(--pink); color:#fff;
+            border:3.5px solid var(--ink); border-radius:99px; padding:12px 42px; cursor:pointer;
+            box-shadow:4px 4px 0 var(--ink); transition:transform .06s; }
+  .bigbtn:active { transform:translate(3px,3px); box-shadow:1px 1px 0 var(--ink); }
+  .finstat { font-family:'Koulen',sans-serif; font-size:52px; color:var(--navy); margin-top:6px; }
+  .newrec { font-family:'Koulen',sans-serif; font-size:20px; color:var(--gold); -webkit-text-stroke:1px var(--ink); margin-top:4px; }
+
+  .foot { position:absolute; bottom:0; left:0; right:0; text-align:center; padding:10px; font-size:11px; font-weight:900;
+          color:var(--ink); opacity:.45; z-index:5; pointer-events:none; }
+
+  .hidden { display:none !important; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="game"></canvas>
+
+  <div class="hud">
+    <div class="score" id="score">0</div>
+    <div class="hiscore" id="hiscore">BEST 0</div>
+  </div>
+
+  <!-- START -->
+  <div class="ov" id="startOv">
+    <div class="panel">
+      <h1>CHOG <span>RUN</span></h1>
+      <p>jump: tap / space &nbsp;·&nbsp; duck: swipe down / ↓<br>collect coins, dodge cacti & drones</p>
+      <button class="bigbtn" id="startBtn">RUN!</button>
+    </div>
+  </div>
+
+  <!-- GAME OVER -->
+  <div class="ov hidden" id="overOv">
+    <div class="panel">
+      <h1>WASTED</h1>
+      <div class="finstat" id="finalScore">0</div>
+      <div class="newrec hidden" id="newRec">NEW BEST!</div>
+      <p id="overMsg">the chog never gives up</p>
+      <button class="bigbtn" id="retryBtn">RUN AGAIN</button>
+    </div>
+  </div>
+
+  <div class="foot">chog run · designed by @bocilelv · choguniverse</div>
+</div>
+
+<script>
+// ================= CHOG RUN — canvas game engine =================
+const $ = id => document.getElementById(id);
+const cvs = $('game');
+const ctx = cvs.getContext('2d');
+
+// ---- config ----
+const G = { gravity: 2700, jumpVel: -1100, groundY: 0, speed: 420, speedMax: 900, accel: 8,
+            duckH: 118, runH: 158, coinRate: .55, obsRate: 1.35 };
+
+// ---- assets (placeholder shapes — swap ke img pas assets ready) ----
+const IMGS = {}; // nanti: IMGS.run1 etc
+const FILES = ['chog-run-1','chog-run-2','chog-jump','chog-duck','cactus-small','cactus-tall','cactus-group','drone','coin','bg-sky','bg-hills','bg-bushes','ground'];
+FILES.forEach(n => { const i = new Image(); i.src = `assets/game/${n}.webp`; IMGS[n] = i; });
+const imgOk = n => IMGS[n] && IMGS[n].complete && IMGS[n].naturalWidth > 0;
+
+// ---- state ----
+let S = 'menu'; // menu | run | over
+let scoreFlash = 0;
+let score, best = +(localStorage.getItem('chogrun_best') || 0);
+let speed, t = 0, last = 0;
+let player, obstacles, coins, parts;
+let spawnT, coinT, groundX, hillsX, bushesX, clouds;
+$('hiscore').textContent = 'BEST ' + best;
+
+// ---- sizing ----
+let W, H;
+function resize() {
+  if (!cvs.clientWidth || !cvs.clientHeight) return;
+  const dpr = devicePixelRatio || 1;
+  W = cvs.width = cvs.clientWidth * dpr;
+  H = cvs.height = cvs.clientHeight * dpr;
+  // pakai koordinat CSS-px: scale context sekali per resize
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  W = cvs.clientWidth; H = cvs.clientHeight;
+  G.groundY = H * 0.85;
+}
+addEventListener('resize', resize); resize();
+
+function reset() {
+  window.__ms = 0;
+  score = 0; speed = G.speed; t = 0; spawnT = 1.2; coinT = .6;
+  player = { y: G.groundY - G.runH, vy: 0, duck: false, frame: 0, frameT: 0, h: G.runH };
+  obstacles = []; coins = []; parts = [];
+  groundX = 0; hillsX = 0; bushesX = 0;
+  clouds = Array.from({length: 6}, () => ({ x: Math.random() * 2000, y: 30 + Math.random() * (H*.28), s: 1.6 + Math.random() * 1.4 }));
+}
+
+// ---- input ----
+function jump() {
+  if (S !== 'run') return;
+  if (player.y >= G.groundY - player.h - 1) { player.vy = G.jumpVel; player.duck = false; spawnDust(); }
+}
+function setDuck(on) { if (S === 'run' && on && player.y >= G.groundY - player.h - 1) player.duck = on; if (!on) player.duck = on; }
+
+addEventListener('keydown', e => {
+  if (e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); if (S === 'menu') start(); else if (S === 'over') start(); else jump(); }
+  if (e.code === 'ArrowDown') { e.preventDefault(); setDuck(true); }
+});
+addEventListener('keyup', e => { if (e.code === 'ArrowDown') setDuck(false); });
+
+// touch: tap = jump, swipe down = duck
+let tY = null, tT = 0;
+cvs.addEventListener('touchstart', e => { const tt = e.touches[0]; tY = tt.clientY; tT = performance.now(); }, {passive:true});
+cvs.addEventListener('touchmove', e => {
+  if (tY !== null && e.touches[0].clientY - tY > 40) { setDuck(true); tY = null; }
+}, {passive:true});
+cvs.addEventListener('touchend', e => {
+  if (tY !== null && performance.now() - tT < 300) jump();
+  setDuck(false); tY = null;
+}, {passive:true});
+cvs.addEventListener('mousedown', () => { if (S === 'run') jump(); });
+
+$('startBtn').onclick = start;
+$('retryBtn').onclick = start;
+function start() { reset(); S = 'run'; $('startOv').classList.add('hidden'); $('overOv').classList.add('hidden'); }
+
+// ---- particles ----
+function spawnDust() { for (let i = 0; i < 6; i++) parts.push({ x: 80, y: G.groundY - 6, vx: -60 - Math.random()*120, vy: -Math.random()*120, l: .5, r: 3 + Math.random()*4 }); }
+function popCoin(x, y) { for (let i = 0; i < 8; i++) parts.push({ x, y, vx: (Math.random()-.5)*260, vy: -Math.random()*220, l: .6, r: 2.5 + Math.random()*3, gold: true }); }
+
+// ---- spawner ----
+function spawn() {
+  const r = Math.random();
+  if (r < .45) obstacles.push({ type:'cactus-small', x: W + 60, w: 92, h: 128 });
+  else if (r < .7) obstacles.push({ type:'cactus-tall', x: W + 60, w: 100, h: 186 });
+  else if (r < .85) obstacles.push({ type:'cactus-group', x: W + 60, w: 195, h: 128 });
+  else obstacles.push({ type:'drone', x: W + 60, w: 136, h: 104, fly: true, fy: G.groundY - 244, bob: Math.random()*6 });
+}
+
+// ---- loop ----
+function loop(ts) {
+  const dt = Math.min(.033, (ts - last) / 1000 || .016); last = ts;
+  try {
+    if (S === 'run') update(dt);
+    draw(dt);
+  } catch (e) {
+    // satu frame error jangan bunuh game — skip frame ini
+    console.warn('frame skip:', e.message);
+  }
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+function update(dt) {
+  t += dt;
+  // speed ala dino google: naik bertahap + BOOST tiap milestone 100 score
+  const sc = Math.floor(t * 10);
+  const milestone = Math.floor(sc / 100);
+  if (milestone > (window.__ms || 0)) { window.__ms = milestone; scoreFlash = 1; }
+  speed = Math.min(G.speedMax, G.speed + t * G.accel + milestone * 26);
+  score = sc;
+  $('score').textContent = score; if (scoreFlash > 0) { scoreFlash -= .03; $('score').style.color = scoreFlash > 0 ? '#FF5CA8' : ''; }
+
+  // player physics
+  player.h = player.duck ? G.duckH : G.runH;
+  if (!player.duck) player.vy += G.gravity * dt;
+  player.y += player.vy * dt;
+  const floor = G.groundY - player.h;
+  if (player.y > floor) { player.y = floor; player.vy = 0; }
+  // anim frame
+  if (player.y >= floor) { player.frameT += dt; if (player.frameT > .12) { player.frameT = 0; player.frame ^= 1; } }
+
+  // parallax
+  groundX = (groundX + speed * dt) % 220;
+  hillsX = (hillsX + speed * .18 * dt) % 1400;
+  bushesX = (bushesX + speed * .4 * dt) % 1000;
+  clouds.forEach(c => { c.x -= speed * .08 * dt; if (c.x < -300) { c.x = W + 200; c.y = 40 + Math.random()*(H*.3); } });
+
+  // spawn
+  spawnT -= dt; coinT -= dt;
+  if (spawnT <= 0) { spawn(); spawnT = (G.obsRate + Math.random() * 1.1) * (420 / speed); }
+  if (coinT <= 0) {
+    coins.push({ x: W + 60, y: G.groundY - 150 - Math.random() * 150, r: 36, spin: 0 });
+    coinT = G.coinRate * (1 + Math.random() * 1.6) * (420 / speed);
+  }
+
+  // move obstacles
+  const px = 120, pw = 128;
+  for (const o of obstacles) {
+    o.x -= speed * dt;
+    const oy = o.fly ? o.fy + Math.sin((t + o.bob) * 4) * 10 : G.groundY - o.h;
+    const ph = o.fly ? o.h : player.duck && o.fly ? G.duckH : player.h;
+    // AABB collide
+    const py = player.flycheck || player.y;
+    const ptop = player.y, pbot = player.y + player.h;
+    if (px + pw*.7 > o.x + 8 && px + pw*.3 < o.x + o.w - 8 &&
+        pbot > oy + 10 && ptop < oy + o.h - 10) return die();
+  }
+  obstacles = obstacles.filter(o => o.x > -150);
+
+  // coins
+  for (const c of coins) {
+    c.x -= speed * dt; c.spin += dt * 9;
+    const dx = c.x - (px + 64), dy = c.y - (player.y + player.h/2);
+    if (dx*dx + dy*dy < 84*84) { c.dead = true; score += 25; t += 2.5; popCoin(c.x, c.y); }
+  }
+  coins = coins.filter(c => !c.dead && c.x > -60);
+
+  // particles
+  for (const p of parts) { p.x += p.vx*dt - speed*dt*.4; p.y += p.vy*dt; p.vy += 600*dt; p.l -= dt; }
+  parts = parts.filter(p => p.l > 0);
+}
+
+function die() {
+  S = 'over';
+  const s = Math.floor(t * 10);
+  $('finalScore').textContent = s;
+  $('newRec').classList.toggle('hidden', s <= best);
+  if (s > best) { best = s; localStorage.setItem('chogrun_best', best); $('hiscore').textContent = 'BEST ' + best; }
+  $('overOv').classList.remove('hidden');
+}
+
+// ================= DRAW =================
+function draw(dt) {
+  ctx.clearRect(0, 0, W, H);
+  const dp = devicePixelRatio;
+
+  // sky
+  if (imgOk('bg-sky')) { ctx.drawImage(IMGS['bg-sky'], 0, 0, W, H); }
+  else {
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#FFF3D6'); g.addColorStop(1, '#FFD9E8');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    // sun
+    ctx.fillStyle = '#FFD452'; ctx.strokeStyle = '#232041'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.arc(W*.82, H*.18, 44, 0, 7); ctx.fill(); ctx.stroke();
+  }
+
+  // clouds
+  ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.strokeStyle = '#232041'; ctx.lineWidth = 3;
+  for (const c of clouds) {
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, 30*c.s, 0, 7); ctx.arc(c.x + 36*c.s, c.y + 6, 22*c.s, 0, 7); ctx.arc(c.x - 33*c.s, c.y + 8, 18*c.s, 0, 7);
+    ctx.fill(); ctx.stroke();
+  }
+
+  // hills (parallax jauh)
+  if (imgOk('bg-hills')) {
+    const iw = IMGS['bg-hills'].naturalWidth, ih = IMGS['bg-hills'].naturalHeight;
+    const dh = H*.5, dw = dh * (iw/ih);
+    // mirror tiling: normal→mirror→normal = tidak pernah seam
+    let idx = Math.floor(hillsX / dw) - 1;
+    for (let x = -(hillsX % dw); x < W; x += dw, idx++) {
+      ctx.save();
+      if (idx % 2) { ctx.translate(x + dw, 0); ctx.scale(-1, 1); ctx.drawImage(IMGS['bg-hills'], 0, G.groundY - dh, dw, dh); }
+      else ctx.drawImage(IMGS['bg-hills'], x, G.groundY - dh, dw, dh);
+      ctx.restore();
+    }
+  } else {
+    ctx.fillStyle = '#E8C8DD';
+    for (let x = -hillsX; x < W + 200; x += 350) {
+      ctx.beginPath(); ctx.arc(x, G.groundY - 10, 130, Math.PI, 0); ctx.fill();
+    }
+  }
+
+  // bushes (parallax deket)
+  if (imgOk('bg-bushes')) {
+    const iw = IMGS['bg-bushes'].naturalWidth, ih = IMGS['bg-bushes'].naturalHeight;
+    const dh = H*.34, dw = dh * (iw/ih);
+    let idx = Math.floor(bushesX / dw) - 1;
+    for (let x = -(bushesX % dw); x < W; x += dw, idx++) {
+      ctx.save();
+      if (idx % 2) { ctx.translate(x + dw, 0); ctx.scale(-1, 1); ctx.drawImage(IMGS['bg-bushes'], 0, G.groundY - dh, dw, dh); }
+      else ctx.drawImage(IMGS['bg-bushes'], x, G.groundY - dh, dw, dh);
+      ctx.restore();
+    }
+  } else {
+    ctx.fillStyle = '#A8D68A';
+    for (let x = -bushesX; x < W + 200; x += 260) {
+      ctx.beginPath(); ctx.arc(x, G.groundY - 4, 60, Math.PI, 0); ctx.arc(x + 70, G.groundY - 4, 40, Math.PI, 0); ctx.fill();
+    }
+  }
+
+  // ground
+  if (imgOk('ground')) {
+    const iw = IMGS['ground'].naturalWidth, ih = IMGS['ground'].naturalHeight;
+    // base pasir solid sampai bawah viewport
+    ctx.fillStyle = '#EFDDB8';
+    ctx.fillRect(0, G.groundY, W, H - G.groundY);
+    // strip art tanam pas di garis ground (aspect ratio asli, tidak di-stretch aneh)
+    const dh = ih * (W / iw) * 0.02 + 90; // tinggi proporsional
+    const dw = dh * (iw / ih);
+    let gIdx = Math.floor(groundX / dw) - 1;
+    for (let x = -(groundX % dw); x < W; x += dw, gIdx++) {
+      ctx.save();
+      if (gIdx % 2) { ctx.translate(x + dw, 0); ctx.scale(-1, 1); ctx.drawImage(IMGS['ground'], 0, G.groundY, dw, dh); }
+      else ctx.drawImage(IMGS['ground'], x, G.groundY, dw, dh);
+      ctx.restore();
+    }
+    // garis tanah tebal
+    ctx.strokeStyle = '#232041'; ctx.lineWidth = 3.5;
+    ctx.beginPath(); ctx.moveTo(0, G.groundY); ctx.lineTo(W, G.groundY); ctx.stroke();
+  } else {
+    ctx.fillStyle = '#F3E8CC'; ctx.fillRect(0, G.groundY, W, H - G.groundY);
+    ctx.strokeStyle = '#232041'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(0, G.groundY); ctx.lineTo(W, G.groundY); ctx.stroke();
+    ctx.fillStyle = 'rgba(35,32,65,.15)';
+    for (let x = -groundX; x < W; x += 55) ctx.fillRect(x, G.groundY + 14, 26, 4);
+  }
+
+  // coins
+  for (const c of coins) {
+    if (imgOk('coin')) {
+      const sq = Math.abs(Math.cos(c.spin));
+      ctx.drawImage(IMGS['coin'], c.x - c.r, c.y - c.r, c.r * 2 * Math.max(.25, sq), c.r * 2);
+    } else {
+      ctx.fillStyle = '#FFD452'; ctx.strokeStyle = '#232041'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.ellipse(c.x, c.y, c.r * Math.max(.25, Math.abs(Math.cos(c.spin))), c.r, 0, 0, 7); ctx.fill(); ctx.stroke();
+    }
+  }
+
+  // obstacles
+  for (const o of obstacles) {
+    const oy = o.fly ? o.fy + Math.sin((t + o.bob) * 4) * 10 : G.groundY - o.h;
+    if (imgOk(o.type)) {
+      const im = IMGS[o.type];
+      const ow = o.h * (im.naturalWidth / im.naturalHeight);
+      // bottom-anchored: kaktus kakinya PERSIS di groundY; burung di ketinggian fly
+      const by = o.fly ? oy : G.groundY - o.h;
+      ctx.drawImage(im, o.x + o.w/2 - ow/2, by, ow, o.h);
+    } else {
+      // placeholder shapes
+      ctx.lineWidth = 3.5; ctx.strokeStyle = '#232041';
+      if (o.fly) { ctx.fillStyle = '#8A7BD8'; ctx.beginPath(); ctx.ellipse(o.x + o.w/2, oy + o.h/2, o.w/2, o.h/2, 0, 0, 7); ctx.fill(); ctx.stroke(); }
+      else { ctx.fillStyle = '#7FBF6A';
+        rr(o.x, oy, o.w, o.h); }
+    }
+  }
+
+  // particles
+  for (const p of parts) {
+    ctx.globalAlpha = Math.max(0, p.l * 2);
+    ctx.fillStyle = p.gold ? '#FFD452' : 'rgba(120,100,80,.5)';
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  // player
+  const px = 120, pw = 128;
+  const py = player.y;
+  // shadow
+  ctx.fillStyle = 'rgba(35,32,65,.18)';
+  ctx.beginPath(); ctx.ellipse(px + 64, G.groundY + 8, 56, 11, 0, 0, 7); ctx.fill();
+
+  let key = 'chog-run-1';
+  if (S === 'over') key = 'chog-jump';
+  else if (player.duck) key = 'chog-duck';
+  else if (player.y < G.groundY - player.h - 2) key = 'chog-jump';
+  else key = player.frame ? 'chog-run-2' : 'chog-run-1';
+
+  if (imgOk(key)) {
+    const im = IMGS[key];
+    // tinggi gambar = tinggi fisik: kaki VISUAL = kaki FISIK, selalu napak
+    const drawH = player.h;
+    const drawW = drawH * (im.naturalWidth / im.naturalHeight);
+    // bottom sprite = bottom hitbox (player.y + player.h = level tanah saat grounded)
+    ctx.drawImage(im, px + 64 - drawW/2, player.y + player.h - drawH, drawW, drawH);
+  } else {
+    // placeholder chog: badan bulat + spike hair
+    ctx.lineWidth = 3.5; ctx.strokeStyle = '#232041';
+    ctx.fillStyle = '#8A7BD8';
+    ctx.beginPath();
+    if (player.duck) { ctx.ellipse(px + 32, py + player.h - 16, 30, 16, 0, 0, 7); }
+    else { ctx.ellipse(px + 30, py + player.h/2, 24, player.h/2, 0, 0, 7); }
+    ctx.fill(); ctx.stroke();
+    // hair spikes
+    ctx.fillStyle = '#6A5BC4';
+    ctx.beginPath(); ctx.moveTo(px + 14, py + 10);
+    for (let i = 0; i < 4; i++) { ctx.lineTo(px + 18 + i*10, py - 2 - (i%2)*6); ctx.lineTo(px + 22 + i*10, py + 8); }
+    ctx.fill();
+    // mata
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(px + 42, py + player.h/2 - 6, 6, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#232041'; ctx.beginPath(); ctx.arc(px + 44, py + player.h/2 - 6, 2.5, 0, 7); ctx.fill();
+  }
+}
+function rr(x, y, w, h) { ctx.beginPath(); ctx.rect(x, y, w, h); ctx.fill(); ctx.stroke(); }
+</script>
+</body>
+</html>

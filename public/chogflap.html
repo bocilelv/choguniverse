@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Chog Flap — Choguniverse</title>
+<link rel="icon" type="image/png" href="/favicon-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Koulen&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  :root { --cream:#FFF8E7; --pink:#FF5CA8; --ink:#232041; --gold:#FFD452; --navy:#3A2E6E; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--cream); color:var(--ink); font-family:'Nunito',sans-serif; overflow:hidden; }
+  .koulen { font-family:'Koulen',sans-serif; font-weight:400; }
+  #wrap { position:relative; width:100vw; height:100vh; }
+  canvas { display:block; width:100%; height:100%; touch-action:none; }
+  .hud { position:absolute; top:0; left:0; right:0; display:flex; justify-content:space-between; align-items:center;
+         padding:14px 18px; pointer-events:none; z-index:10; }
+  .score { font-family:'Koulen',sans-serif; font-size:38px; color:var(--ink); text-shadow:2px 2px 0 rgba(255,255,255,.65); }
+  .hiscore { font-size:13px; font-weight:900; background:rgba(255,255,255,.75); border:2.5px solid var(--ink);
+             border-radius:99px; padding:5px 14px; }
+  .ov { position:absolute; inset:0; z-index:20; display:flex; align-items:center; justify-content:center;
+        background:rgba(43,33,24,.45); backdrop-filter:blur(3px); }
+  .panel { background:var(--cream); border:4px solid var(--ink); border-radius:24px; padding:34px 44px; text-align:center;
+           box-shadow:8px 8px 0 rgba(0,0,0,.25); max-width:90vw; }
+  .panel h1 { font-family:'Koulen',sans-serif; font-size:44px; letter-spacing:1px; line-height:1; }
+  .panel h1 span { color:var(--pink); }
+  .panel p { font-weight:700; font-size:14px; opacity:.75; margin-top:10px; }
+  .bigbtn { margin-top:20px; font-family:'Koulen',sans-serif; font-size:22px; background:var(--pink); color:#fff;
+            border:3.5px solid var(--ink); border-radius:99px; padding:12px 44px; cursor:pointer;
+            box-shadow:4px 4px 0 var(--ink); transition:transform .06s; }
+  .bigbtn:active { transform:translate(3px,3px); box-shadow:1px 1px 0 var(--ink); }
+  .finstat { font-family:'Koulen',sans-serif; font-size:54px; color:var(--navy); margin-top:6px; }
+  .newrec { font-family:'Koulen',sans-serif; font-size:20px; color:var(--gold); -webkit-text-stroke:1px var(--ink); margin-top:4px; }
+  .foot { position:absolute; bottom:0; left:0; right:0; text-align:center; padding:10px; font-size:11px; font-weight:900;
+          opacity:.45; z-index:5; pointer-events:none; }
+  .hidden { display:none !important; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="game"></canvas>
+  <div class="hud">
+    <div class="score" id="score">0</div>
+    <div class="hiscore" id="hiscore">BEST 0</div>
+  </div>
+
+  <div class="ov" id="startOv">
+    <div class="panel">
+      <h1>CHOG <span>FLAP</span></h1>
+      <p>tap / space to flap · slip through the leaf gaps<br>don't touch the stems or the ground</p>
+      <button class="bigbtn" id="startBtn">FLAP!</button>
+    </div>
+  </div>
+
+  <div class="ov hidden" id="overOv">
+    <div class="panel">
+      <h1>FELL</h1>
+      <div class="finstat" id="finalScore">0</div>
+      <div class="newrec hidden" id="newRec">NEW BEST!</div>
+      <p id="overMsg">the chog never gives up</p>
+      <button class="bigbtn" id="retryBtn">FLAP AGAIN</button>
+    </div>
+  </div>
+
+  <div class="foot">chog flap · designed by @bocilelv · choguniverse</div>
+</div>
+
+<script>
+// ================= CHOG FLAP — canvas game engine =================
+const $ = id => document.getElementById(id);
+const cvs = $('game');
+const ctx = cvs.getContext('2d');
+
+const G = { gravity: 2200, flapVel: -680, scroll: 300, scrollMax: 500, accel: 3.2,
+            gapH: 290, pipeW: 190, pipeGapX: 360, birdR: 56 };
+
+// assets — nama sesuai list prompt flappy (chog-bird-up, chog-bird-down, pipe-top, pipe-bottom, bg-sky-flap, ground-flap)
+const IMGS = {};
+const FILES = ['chog-bird-up','chog-bird-down','pipe-top-head','pipe-top-stem','pipe-bottom-head','pipe-bottom-stem','bg-sky-wide','ground-flap'];
+FILES.forEach(n => { const i = new Image(); i.src = `assets/game/${n}.webp`; IMGS[n] = i; });
+const imgOk = n => IMGS[n] && IMGS[n].complete && IMGS[n].naturalWidth > 0;
+
+let S = 'menu', best = +(localStorage.getItem('chogflap_best') || 0);
+let bird, pipes, score, t, last = 0, scroll, groundX, parts, flash;
+$('hiscore').textContent = 'BEST ' + best;
+
+let W, H, groundY;
+function resize() {
+  if (!cvs.clientWidth || !cvs.clientHeight) return;
+  const dpr = devicePixelRatio || 1;
+  cvs.width = cvs.clientWidth * dpr; cvs.height = cvs.clientHeight * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  W = cvs.clientWidth; H = cvs.clientHeight;
+  groundY = H * 0.88;
+}
+addEventListener('resize', resize); resize();
+
+function reset() {
+  bird = { x: W * 0.28, y: H * 0.42, vy: 0, rot: 0, frame: 0, frameT: 0 };
+  pipes = []; score = 0; t = 0; scroll = G.scroll; groundX = 0; parts = []; flash = 0;
+}
+
+// ===== input =====
+function flap() {
+  if (S !== 'run') return;
+  bird.vy = G.flapVel; bird.rot = -0.42;
+  for (let i = 0; i < 4; i++) parts.push({ x: bird.x - 26, y: bird.y + 14, vx: -80 - Math.random()*80, vy: 40 + Math.random()*60, l: .4, r: 3 + Math.random()*3 });
+}
+addEventListener('keydown', e => {
+  if (e.code !== 'Space' && e.code !== 'ArrowUp') return;
+  e.preventDefault();
+  if (S === 'menu' || S === 'over') start(); else flap();
+});
+cvs.addEventListener('mousedown', () => { if (S === 'run') flap(); });
+cvs.addEventListener('touchstart', e => { e.preventDefault(); if (S === 'run') flap(); else if (S === 'menu' || S === 'over') start(); }, { passive: false });
+
+$('startBtn').onclick = start;
+$('retryBtn').onclick = start;
+function start() { reset(); S = 'run'; $('startOv').classList.add('hidden'); $('overOv').classList.add('hidden'); }
+
+// ===== spawner =====
+function spawnPipe() {
+  const margin = 90;
+  const gapY = margin + Math.random() * (groundY - G.gapH - margin * 2);
+  pipes.push({ x: W + 60, gapY, scored: false, bob: Math.random() * 6 });
+}
+
+// ===== loop =====
+function loop(ts) {
+  const dt = Math.min(.033, (ts - last) / 1000 || .016); last = ts;
+  try {
+    if (S === 'run') update(dt);
+    draw(dt);
+  } catch (e) { console.warn('frame skip:', e.message); }
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+function update(dt) {
+  t += dt;
+  scroll = Math.min(G.scrollMax, G.scroll + t * G.accel);
+
+  // bird physics
+  bird.vy += G.gravity * dt;
+  bird.y += bird.vy * dt;
+  bird.rot = Math.max(-0.45, Math.min(1.1, bird.vy / 700));
+  bird.frameT += dt;
+  if (bird.frameT > .1) { bird.frameT = 0; bird.frame ^= 1; }
+
+  // pipes
+  const lastPipe = pipes[pipes.length - 1];
+  if (!lastPipe || lastPipe.x < W - (G.pipeGapX + Math.random() * 120)) spawnPipe();
+  for (const p of pipes) {
+    p.x -= scroll * dt;
+    // score saat lewat
+    if (!p.scored && p.x + G.pipeW < bird.x - G.birdR) { p.scored = true; score++; flash = 1; }
+    // collision shape-aware: kepala LEBAR (±100% pw), batang TIPIS (±46% pw, terpusat)
+    const topH = p.gapY, botY = p.gapY + G.gapH;
+    const headH = G.pipeW * .8;
+    const stemPad = G.pipeW * .27;
+    const stemX0 = p.x + stemPad, stemX1 = p.x + G.pipeW - stemPad;
+    // TOP-HEAD: art top-head meruncing di 25% bawahnya (tendril daun, visible <60%).
+    // Bagian solid kepala = 30%..75% tinggi art; 25% terbawah = tendril → hitbox stem-tipis.
+    const solidHeadH = headH * .75;                 // bagian kepala yang solid
+    const tendrilY = topH - headH * .25;            // mulai zona tendril (mendekati gap)
+    const hitTopStem = circleRect(bird.x, bird.y, G.birdR, stemX0, -80, stemX1 - stemX0, topH - headH + 80);
+    const hitTopHeadSolid = circleRect(bird.x, bird.y, G.birdR, p.x, topH - headH, G.pipeW, solidHeadH);
+    const hitTopTendril = circleRect(bird.x, bird.y, G.birdR, stemX0, tendrilY, stemX1 - stemX0, headH * .25);
+    // BOTTOM-HEAD (art meruncing di 25% teratasnya, mirror dari top): sama treatment
+    const hitBotHeadSolid = circleRect(bird.x, bird.y, G.birdR, p.x, botY + headH * .25, G.pipeW, solidHeadH);
+    const hitBotTendril = circleRect(bird.x, bird.y, G.birdR, stemX0, botY, stemX1 - stemX0, headH * .25);
+    const hitBotStem = circleRect(bird.x, bird.y, G.birdR, stemX0, botY + headH, stemX1 - stemX0, groundY - botY - headH + 80);
+    if (hitTopStem || hitTopHeadSolid || hitTopTendril || hitBotHeadSolid || hitBotTendril || hitBotStem) return die();
+  }
+  pipes = pipes.filter(p => p.x > -160);
+
+  // ground / ceiling
+  if (bird.y + G.birdR >= groundY) { bird.y = groundY - G.birdR; return die(); }
+  if (bird.y - G.birdR <= -20) { bird.y = -20 + G.birdR; bird.vy = 0; }
+
+  // particles + parallax
+  for (const q of parts) { q.x += q.vx*dt - scroll*dt*.3; q.y += q.vy*dt; q.l -= dt; }
+  parts = parts.filter(q => q.l > 0);
+  groundX = (groundX + scroll * dt) % 240;
+
+  $('score').textContent = score;
+  if (flash > 0) { flash -= .06; $('score').style.color = flash > 0 ? '#FF5CA8' : ''; }
+}
+
+function circleRect(cx, cy, r, rx, ry, rw, rh) {
+  const nx = Math.max(rx, Math.min(cx, rx + rw));
+  const ny = Math.max(ry, Math.min(cy, ry + rh));
+  return (cx-nx)*(cx-nx) + (cy-ny)*(cy-ny) < r*r;
+}
+
+function die() {
+  S = 'over';
+  $('finalScore').textContent = score;
+  $('newRec').classList.toggle('hidden', score <= best);
+  if (score > best) { best = score; localStorage.setItem('chogflap_best', best); $('hiscore').textContent = 'BEST ' + best; }
+  $('overOv').classList.remove('hidden');
+}
+
+// ===== draw =====
+function draw(dt) {
+  ctx.clearRect(0, 0, W, H);
+
+  // sky
+  if (imgOk('bg-sky-wide')) {
+    const im = IMGS['bg-sky-wide'];
+    // cover-fit supaya dreamy landscape isi penuh
+    const s = Math.max(W / im.naturalWidth, H / im.naturalHeight);
+    ctx.drawImage(im, (W - im.naturalWidth * s) / 2, (H - im.naturalHeight * s) / 2, im.naturalWidth * s, im.naturalHeight * s);
+  }
+  else {
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#FFEDD6'); g.addColorStop(.6, '#FFD9E8'); g.addColorStop(1, '#E8D6F0');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#FFD452'; ctx.strokeStyle = '#232041'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.arc(W*.84, H*.16, 42, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.strokeStyle = '#232041'; ctx.lineWidth = 3;
+    for (let i = 0; i < 4; i++) {
+      const x = (i * 340 + 60) % W, y = 60 + (i % 3) * 70;
+      ctx.beginPath(); ctx.arc(x, y, 26, 0, 7); ctx.arc(x + 30, y + 5, 18, 0, 7); ctx.arc(x - 26, y + 6, 15, 0, 7);
+      ctx.fill(); ctx.stroke();
+    }
+  }
+
+  // pipes
+  for (const p of pipes) {
+    const topH = p.gapY, botY = p.gapY + G.gapH;
+    const pw = G.pipeW + 26;
+    const px0 = p.x - 13;
+    if (imgOk('pipe-top-head') && imgOk('pipe-top-stem')) {
+      const head = IMGS['pipe-top-head'], stem = IMGS['pipe-top-stem'];
+      const headH = pw * (head.naturalHeight / head.naturalWidth);
+      const stemH = pw * (stem.naturalHeight / stem.naturalWidth);
+      for (let y = topH - headH - stemH; y > -stemH; y -= stemH) ctx.drawImage(stem, px0, y, pw, stemH);
+      ctx.drawImage(head, px0, topH - headH, pw, headH);
+    } else {
+      drawPipeShape(p.x, 0, G.pipeW, topH, true);
+    }
+    if (imgOk('pipe-bottom-head') && imgOk('pipe-bottom-stem')) {
+      const head = IMGS['pipe-bottom-head'], stem = IMGS['pipe-bottom-stem'];
+      const headH = pw * (head.naturalHeight / head.naturalWidth);
+      const stemH = pw * (stem.naturalHeight / stem.naturalWidth);
+      for (let y = botY + headH; y < groundY; y += stemH) ctx.drawImage(stem, px0, y, pw, stemH);
+      ctx.drawImage(head, px0, botY, pw, headH);
+    } else {
+      drawPipeShape(p.x, botY, G.pipeW, groundY - botY, false);
+    }
+  }
+
+  // ground
+  if (imgOk('ground-flap')) {
+    const im = IMGS['ground-flap'];
+    const dh = H - groundY + 26;
+    ctx.fillStyle = '#CDBDF0'; ctx.fillRect(0, groundY, W, H - groundY);
+    // scale tinggi art (ratio asli 4:1) ke band ground
+    const dw = dh * (im.naturalWidth / im.naturalHeight);
+    let gIdx = Math.floor(groundX / dw) - 1;
+    for (let x = -(groundX % dw); x < W; x += dw, gIdx++) {
+      ctx.save();
+      if (gIdx % 2) { ctx.translate(x + dw, 0); ctx.scale(-1, 1); ctx.drawImage(im, 0, groundY, dw, dh); }
+      else ctx.drawImage(im, x, groundY, dw, dh);
+      ctx.restore();
+    }
+    ctx.strokeStyle = '#232041'; ctx.lineWidth = 3.5;
+    ctx.beginPath(); ctx.moveTo(0, groundY); ctx.lineTo(W, groundY); ctx.stroke();
+  } else {
+    ctx.fillStyle = '#D8C8F0'; ctx.fillRect(0, groundY, W, H - groundY);
+    ctx.strokeStyle = '#232041'; ctx.lineWidth = 3.5;
+    ctx.beginPath(); ctx.moveTo(0, groundY); ctx.lineTo(W, groundY); ctx.stroke();
+    ctx.fillStyle = 'rgba(35,32,65,.12)';
+    for (let x = -groundX; x < W; x += 60) { ctx.beginPath(); ctx.arc(x, groundY + 18, 8, 0, 7); ctx.fill(); }
+  }
+
+  // particles
+  for (const q of parts) {
+    ctx.globalAlpha = Math.max(0, q.l * 2.2);
+    ctx.fillStyle = 'rgba(255,255,255,.8)';
+    ctx.beginPath(); ctx.arc(q.x, q.y, q.r, 0, 7); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  // bird (chog-bird)
+  const key = bird.frame ? 'chog-bird-down' : 'chog-bird-up';
+  ctx.save();
+  ctx.translate(bird.x, bird.y);
+  ctx.rotate(bird.rot);
+  ctx.fillStyle = 'rgba(35,32,65,.15)';
+  ctx.beginPath(); ctx.ellipse(6, G.birdR + 10, G.birdR * .8, 7, 0, 0, 7); ctx.fill();
+  if (imgOk(key)) {
+    const im = IMGS[key];
+    const dh = G.birdR * 2.15, dw = dh * (im.naturalWidth / im.naturalHeight);
+    ctx.drawImage(im, -dw/2, -dh/2, dw, dh);
+  } else {
+    // placeholder chog-bird: badan bulat + sayap
+    ctx.lineWidth = 3.5; ctx.strokeStyle = '#232041'; ctx.fillStyle = '#8A7BD8';
+    ctx.beginPath(); ctx.ellipse(0, 0, G.birdR, G.birdR * .85, 0, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#FFD452';
+    const wingY = bird.frame ? 14 : -14;
+    ctx.beginPath(); ctx.ellipse(-4, wingY, 16, 8, bird.frame ? .5 : -.5, 0, 7); ctx.fill(); ctx.stroke();
+    // paruh
+    ctx.fillStyle = '#FF9A3D';
+    ctx.beginPath(); ctx.moveTo(G.birdR * .8, 2); ctx.lineTo(G.birdR * 1.25, 8); ctx.lineTo(G.birdR * .75, 12); ctx.fill(); ctx.stroke();
+    // mata
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(12, -8, 7, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#232041'; ctx.beginPath(); ctx.arc(14, -8, 3, 0, 7); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function gapTopY(topH, ph) { return topH - ph; }
+function drawPipeShape(x, y, w, h, fromTop) {
+  ctx.fillStyle = '#7FBF6A'; ctx.strokeStyle = '#232041'; ctx.lineWidth = 3.5;
+  ctx.beginPath(); ctx.rect(x, y, w, h); ctx.fill(); ctx.stroke();
+  // mulut pipa
+  const capY = fromTop ? y + h - 34 : y;
+  ctx.fillStyle = '#6AAE55';
+  ctx.beginPath(); ctx.rect(x - 7, capY, w + 14, 34); ctx.fill(); ctx.stroke();
+}
+</script>
+</body>
+</html>
