@@ -44,6 +44,16 @@
       font-weight:900; font-size:14px; text-decoration:none; color:var(--ink); }
     .dd-item:hover { background:var(--gold); }
     .dd-item .xsm { width:15px; height:15px; fill:var(--ink); }
+    /* chogames header dropdown */
+    .games-dd-item { display:flex; align-items:center; gap:10px; padding:9px 14px; cursor:pointer;
+      font-weight:900; font-size:14px; text-decoration:none; color:var(--ink); }
+    .games-dd-item:hover { background:var(--gold); }
+    .games-dd-item img { width:34px; height:34px; border-radius:9px; border:2px solid var(--ink); object-fit:cover; }
+    .games-dd-item .soon-tag { font-size:10px; font-weight:900; color:var(--ink-soft);
+      background:var(--cream); border:1.5px solid var(--ink); border-radius:99px; padding:1px 7px; margin-left:auto; }
+    .games-dd-item.coming img { filter:blur(2px) grayscale(.5); }
+    .games-dd-title { font-family:'Koulen'; font-size:12px; padding:7px 14px 4px; color:var(--ink-soft);
+      letter-spacing:1px; background:var(--cream); }
 
     /* ===== PAGE ===== */
     .page { min-height:100vh; display:flex; flex-direction:column; justify-content:center;
@@ -66,14 +76,14 @@
     .explore-sub { font-weight:700; color:var(--ink-soft); font-size:16.5px; margin-bottom:44px; }
 
     /* ===== PILLS — vertikal, ukuran SAMA semua ===== */
-    .pills { display:flex; flex-direction:column; gap:14px; max-width:560px; width:100%; }
+    .pills { display:flex; flex-direction:column; gap:26px; max-width:560px; width:100%; }
     .util { text-decoration:none; color:var(--ink); display:flex; align-items:center; }
-    .util .pill { display:flex; align-items:center; gap:18px; border:4px solid var(--ink);
+    .util .pill { display:flex; align-items:center; gap:22px; border:4px solid var(--ink);
       border-radius:999px; overflow:hidden; background:var(--cream2);
       box-shadow:7px 7px 0 rgba(43,33,24,.35); transition:transform .18s, box-shadow .18s;
-      padding:7px 36px 7px 12px; width:100%; }
+      padding:10px 40px 10px 14px; width:100%; }
     .util:hover .pill { transform:translate(-3px,-3px); box-shadow:10px 10px 0 rgba(43,33,24,.4); }
-    .util .pill img { height:64px; width:64px; object-fit:contain; transition:.18s;
+    .util .pill img { height:76px; width:76px; object-fit:contain; transition:.18s;
       border-radius:50%; flex-shrink:0; }
     .util:hover .pill img { transform:scale(1.07); }
     .util .ptxt .plabel { font-family:'Koulen'; font-size:clamp(22px, 3vw, 30px); text-transform:uppercase; line-height:1; }
@@ -89,8 +99,8 @@
 
     @media (max-width:560px) {
       .pills { gap:20px; }
-      .util .pill { padding:6px 22px 6px 8px; gap:12px; }
-      .util .pill img { height:48px; width:48px; }
+      .util .pill { padding:8px 26px 8px 10px; gap:16px; }
+      .util .pill img { height:56px; width:56px; }
     }
   
     /* chogames squares */
@@ -120,6 +130,23 @@
     <span><span class="t1">CHOG UNIVERSE</span><br><span class="t2">CHOG SQUAD</span></span>
   </a>
   <div class="nav-right">
+    <div class="dd" id="gamesdd">
+      <div class="nav-logo" title="Chogames">
+        <img src="assets/util-chogames.webp" alt="Chogames">
+      </div>
+      <div class="dd-menu" style="min-width:210px;">
+        <div class="games-dd-title">CHOGAMES</div>
+        <a class="games-dd-item coming" href="#" onclick="return false;">
+          <img src="assets/game-chogrun.webp" alt="chog run">
+          <span>CHOG RUN</span>
+          <span class="soon-tag">SOON</span>
+        </a>
+        <a class="games-dd-item" href="/chogflap">
+          <img src="assets/game-chogflap.webp" alt="chog flap">
+          <span>CHOG FLAP</span>
+        </a>
+      </div>
+    </div>
     <a class="nav-logo" title="Chog Genesis on OpenSea"
        href="https://opensea.io/collection/chog-genesis" target="_blank" rel="noopener">
       <img src="assets/nav-opensea.webp" alt="OpenSea">
@@ -193,27 +220,6 @@
         </div>
       </div>
     </a>
-    <a class="util" href="#chogames" id="chogamesToggle">
-      <div class="pill">
-        <img src="assets/util-chogames.webp" alt="chogames">
-        <div class="ptxt">
-          <div class="plabel">CHOGAMES</div>
-          <div class="pdesc">arcade minigames for the chogs</div>
-        </div>
-      </div>
-    </a>
-    <div class="gameswrap" id="chogamesWrap">
-      <a class="gpill coming" href="#" onclick="return false;">
-        <div class="gimg"><img src="assets/game-chogrun.webp" alt="chog run">
-          <div class="soon">COMING SOON</div>
-        </div>
-        <div class="glabel">CHOG RUN</div>
-      </a>
-      <a class="gpill" href="/chogflap">
-        <div class="gimg"><img src="assets/game-chogflap.webp" alt="chog flap"></div>
-        <div class="glabel">CHOG FLAP</div>
-      </a>
-    </div>
   </div>
 </main>
 
@@ -223,22 +229,14 @@
 </footer>
 
 <script>
-// ---- chogames toggle ----
+// ---- chogames header dropdown (kayak X) ----
 (() => {
-  const t = document.getElementById('chogamesToggle');
-  const w = document.getElementById('chogamesWrap');
-  t.addEventListener('click', (e) => {
-    e.preventDefault();
-    const on = w.classList.contains('open');
-    if (on) {
-      w.classList.remove('open');
-      setTimeout(() => { if (!w.classList.contains('open')) w.style.display = 'none'; }, 280);
-    } else {
-      w.style.display = 'flex';
-      requestAnimationFrame(() => requestAnimationFrame(() => w.classList.add('open')));
-      setTimeout(() => w.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 120);
-    }
+  const dd = document.getElementById('gamesdd');
+  dd.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dd.classList.toggle('open');
   });
+  document.addEventListener('click', () => dd.classList.remove('open'));
 })();
 
 // ---- parallax ala chog.xyz: hero art ngikutin mouse dikit (lerp biar halus) ----
