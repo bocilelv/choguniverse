@@ -15,7 +15,7 @@
       --gold:#F2C14E; --purple:#7B5FC7;
     }
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { background:var(--cream); color:var(--ink); font-family:'Nunito',sans-serif; overflow-x:hidden; }
+    body { background:var(--cream); color:var(--ink); font-family:'Nunito',sans-serif; overflow:hidden; }
     h1,h2,h3,.koulen { font-family:'Koulen',sans-serif; font-weight:400; letter-spacing:.5px; }
 
     /* ===== NAV ===== */
@@ -229,14 +229,25 @@
 </footer>
 
 <script>
-// ---- chogames header dropdown (kayak X) ----
+// ---- chogames header dropdown: hover-open (desktop) + tap (mobile) ----
 (() => {
   const dd = document.getElementById('gamesdd');
+  const open = () => dd.classList.add('open');
+  const close = () => dd.classList.remove('open');
+  // hover (desktop)
+  dd.addEventListener('mouseenter', open);
+  dd.addEventListener('mouseleave', (e) => {
+    // jangan tutup kalau mouse lagi di dalam menu (menu nempel di bawah icon)
+    if (!dd.contains(e.relatedTarget)) close();
+  });
+  // tap (mobile / klik)
   dd.addEventListener('click', (e) => {
     e.stopPropagation();
     dd.classList.toggle('open');
   });
-  document.addEventListener('click', () => dd.classList.remove('open'));
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#gamesdd')) close();
+  });
 })();
 
 // ---- parallax ala chog.xyz: hero art ngikutin mouse dikit (lerp biar halus) ----
