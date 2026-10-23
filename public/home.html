@@ -94,14 +94,16 @@
     }
   
     /* chogames squares */
-    .gameswrap { display:none; gap:18px; width:100%; max-width:560px; margin:4px auto 8px; }
+    .gameswrap { display:none; gap:14px; width:100%; max-width:480px; margin:2px auto 6px; justify-content:center;
+    opacity:0; transform:translateY(-10px); transition:opacity .28s ease, transform .28s ease; }
+    .gameswrap.open { opacity:1; transform:translateY(0); }
     .gameswrap.show { display:flex; }
-    .gpill { text-decoration:none; color:var(--ink); flex:1; max-width:270px; }
+    .gpill { text-decoration:none; color:var(--ink); flex:0 1 225px; max-width:225px; }
     .gpill .gimg { position:relative; aspect-ratio:1; border:4px solid var(--ink); border-radius:20px;
       overflow:hidden; background:var(--cream2); box-shadow:6px 6px 0 rgba(43,33,24,.35); transition:.18s; }
     .gpill:hover .gimg { transform:translate(-3px,-3px); box-shadow:9px 9px 0 rgba(43,33,24,.4); }
     .gpill .gimg img { width:100%; height:100%; object-fit:cover; }
-    .gpill .glabel { font-family:'Koulen'; font-size:22px; text-align:center; margin-top:8px; text-transform:uppercase; }
+    .gpill .glabel { font-family:'Koulen'; font-size:19px; text-align:center; margin-top:6px; text-transform:uppercase; }
     .gpill.coming { cursor:not-allowed; opacity:.85; }
     .gpill.coming .gimg img { filter:blur(4px) grayscale(.4); }
     .gpill.coming .glabel { color:var(--ink-soft); }
@@ -227,9 +229,15 @@
   const w = document.getElementById('chogamesWrap');
   t.addEventListener('click', (e) => {
     e.preventDefault();
-    const on = w.style.display === 'flex';
-    w.style.display = on ? 'none' : 'flex';
-    if (!on) w.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    const on = w.classList.contains('open');
+    if (on) {
+      w.classList.remove('open');
+      setTimeout(() => { if (!w.classList.contains('open')) w.style.display = 'none'; }, 280);
+    } else {
+      w.style.display = 'flex';
+      requestAnimationFrame(() => requestAnimationFrame(() => w.classList.add('open')));
+      setTimeout(() => w.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 120);
+    }
   });
 })();
 
